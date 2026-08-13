@@ -1,0 +1,20 @@
+# Virtual environment
+.venv/
+venv/
+ENV/
+
+# Python byte-code & caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Build & distribution
+dist/
+build/
+*.egg-info/
+
+# uv cache directory
+.uv/
