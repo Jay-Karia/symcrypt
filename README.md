@@ -23,3 +23,7 @@ Read the [contributing guidelines](CONTRIBUTING.md) for more information.
 https://excalidraw.com/#room=95c153de07e47463e768,hsydQjSqx_-nEJZuXXyxfw
 
 ![Whiteboard Image](/public/whiteboard.png)
+
+## FigJam
+
+![FigJam Image](/public/figjam.png)
