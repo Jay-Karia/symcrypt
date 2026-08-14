@@ -24,6 +24,6 @@ https://excalidraw.com/#room=95c153de07e47463e768,hsydQjSqx_-nEJZuXXyxfw
 
 ![Whiteboard Image](/public/whiteboard.png)
 
-## FigJam
+### FigJam
 
 ![FigJam Image](/public/figjam.png)
