@@ -6,4 +6,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "customtkinter>=6.0.0",
+    "darkdetect>=0.8.0",
+    "pillow>=12.3.0",
+    "watchfiles>=0.24.0",
 ]
