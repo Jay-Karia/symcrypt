@@ -14,16 +14,12 @@ A desktop application than encrypts secret messages into math equations
    uv run main.py
    ```
 
+## Features
+
 ## Contributing
 
 Read the [contributing guidelines](CONTRIBUTING.md) for more information.
 
-### Whiteboard
-
-https://excalidraw.com/#room=95c153de07e47463e768,hsydQjSqx_-nEJZuXXyxfw
-
-![Whiteboard Image](/public/whiteboard.png)
-
-### FigJam
+### Architecture
 
 ![FigJam Image](/public/figjam.png)
