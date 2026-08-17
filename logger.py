@@ -22,6 +22,8 @@ def log(message, target_id="default", text_color=None):
     """Display a message in the widget registered for the provided ID."""
     widget = _LOG_TARGETS.get(target_id)
 
+    clear_log(target_id)
+
     if widget is None:
         print(f"[{target_id}] {message}")
         return
