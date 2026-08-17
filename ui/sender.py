@@ -1,12 +1,15 @@
 import customtkinter
 from tkinter import filedialog, messagebox
 import utils.encrypt
+from logger import create_log_target
+
 
 def show_gpg_key_help():
         messagebox.showinfo(
             "GPG Key File",
             "Select the receiver's public GPG key file for encryption."
         )
+
 
 def sender_screen(root: customtkinter.CTk):
     root.title("SymCrypt - Sender")
@@ -58,6 +61,9 @@ def sender_screen(root: customtkinter.CTk):
 
     secretMessageEntry = customtkinter.CTkTextbox(root, width=600, height=200, fg_color="#333333")
     secretMessageEntry.pack(pady=(0, 5), anchor="w", padx=(20, 0))
+
+    loggerBox = create_log_target(root, "encryption_logger", width=600, height=40, fg_color="#2b2b2b")
+    loggerBox.pack(pady=(0, 10), anchor="w", padx=(20, 0))
 
     encryptButton = customtkinter.CTkButton(root, text="Encrypt", width=200, command=lambda: utils.encrypt.encryptMessage(secretMessageEntry.get("1.0", "end-1c"), gpgKeyPathEntry.get()))
     encryptButton.pack(pady=(10, 20), anchor="w", padx=(20, 0))
