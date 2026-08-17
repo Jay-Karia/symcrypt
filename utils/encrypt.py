@@ -1,6 +1,9 @@
 import random
 import utils.gpg
 import utils.points
+import sympy as sp
+
+x = sp.Symbol('x')
 
 def char_to_ascii(char):
   ascii_value = ord(char)
@@ -33,4 +36,10 @@ def encryptMessage(message, gpg_key_path):
 
   # Generate geometric points
   points = utils.points.generate_points(secret_key, ascii_values)
-  print(points)
+
+  # Generate equation
+  base_polynomial = sp.interpolate(points, x)
+  integral = sp.integrate(base_polynomial, x)
+  calculus_wrapper = sp.Derivative(integral, x)
+
+  print(calculus_wrapper)
