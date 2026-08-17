@@ -20,11 +20,15 @@ def show_salt_equation_help():
 def sender_screen(root: customtkinter.CTk):
     root.title("SymCrypt - Sender")
 
+    # Create a scrollable frame for the entire content
+    main_frame = customtkinter.CTkScrollableFrame(root, fg_color="transparent")
+    main_frame.pack(fill="both", expand=True, padx=0, pady=0)
+
     # Connect to Server
-    connectServerLabel = customtkinter.CTkLabel(root, text="Connect to Receiver's Server", font=("Arial", 16))
+    connectServerLabel = customtkinter.CTkLabel(main_frame, text="Connect to Receiver's Server", font=("Arial", 16))
     connectServerLabel.pack(pady=(12, 2), anchor="w", padx=(20, 0))
 
-    connectionFrame = customtkinter.CTkFrame(root)
+    connectionFrame = customtkinter.CTkFrame(main_frame)
     connectionFrame.pack(pady=(0, 5), anchor="w", padx=(20, 0))
 
     serverAddressEntry = customtkinter.CTkEntry(connectionFrame, placeholder_text="Server Address", width=300)
@@ -34,7 +38,7 @@ def sender_screen(root: customtkinter.CTk):
     connectButton.grid(row=0, column=2, padx=(10, 0), pady=5)
 
     # GPG Key Input
-    gpgKeyHeaderFrame = customtkinter.CTkFrame(root)
+    gpgKeyHeaderFrame = customtkinter.CTkFrame(main_frame)
     gpgKeyHeaderFrame.pack(pady=(12, 2), anchor="w", padx=(20, 0))
 
     gpgKeyLabel = customtkinter.CTkLabel(gpgKeyHeaderFrame, text="GPG Key File", font=("Arial", 16))
@@ -43,7 +47,7 @@ def sender_screen(root: customtkinter.CTk):
     gpgQuickInfoButton = customtkinter.CTkButton(gpgKeyHeaderFrame, text="?", width=30, command=show_gpg_key_help)
     gpgQuickInfoButton.grid(row=0, column=1)
 
-    gpgKeyFrame = customtkinter.CTkFrame(root)
+    gpgKeyFrame = customtkinter.CTkFrame(main_frame)
     gpgKeyFrame.pack(pady=(0, 5), anchor="w", padx=(20, 0))
 
     gpgKeyPathEntry = customtkinter.CTkEntry(gpgKeyFrame, placeholder_text="Select GPG key file", width=500)
@@ -62,17 +66,17 @@ def sender_screen(root: customtkinter.CTk):
     browseButton.grid(row=0, column=2, pady=5)
 
     # Secret Message
-    secretMessageLabel = customtkinter.CTkLabel(root, text="Secret Message", font=("Arial", 16))
+    secretMessageLabel = customtkinter.CTkLabel(main_frame, text="Secret Message", font=("Arial", 16))
     secretMessageLabel.pack(pady=(12, 2), anchor="w", padx=(20, 0))
 
-    secretMessageEntry = customtkinter.CTkTextbox(root, width=600, height=200, fg_color="#333333")
+    secretMessageEntry = customtkinter.CTkTextbox(main_frame, width=600, height=200, fg_color="#333333")
     secretMessageEntry.pack(pady=(0, 5), anchor="w", padx=(20, 0))
 
-    loggerBox = create_log_target(root, "encryption_logger", width=600, height=40, fg_color="#2b2b2b")
+    loggerBox = create_log_target(main_frame, "encryption_logger", width=600, height=40, fg_color="#2b2b2b")
     loggerBox.pack(pady=(0, 10), anchor="w", padx=(20, 0))
 
     # Salt equation settings
-    saltEquationHeaderFrame = customtkinter.CTkFrame(root)
+    saltEquationHeaderFrame = customtkinter.CTkFrame(main_frame)
     saltEquationHeaderFrame.pack(pady=(12, 2), anchor="w", padx=(20, 0))
 
     saltEquationLabel = customtkinter.CTkLabel(saltEquationHeaderFrame, text="Salt Equation Type", font=("Arial", 16))
@@ -83,7 +87,7 @@ def sender_screen(root: customtkinter.CTk):
 
     saltEquationTypeVar = customtkinter.StringVar(value="Sine")
     saltEquationTypeMenu = customtkinter.CTkOptionMenu(
-        root,
+        main_frame,
         values=["Sine", "Cosine", "Tan", "Square Root", "Log"],
         variable=saltEquationTypeVar,
         width=220,
@@ -94,12 +98,25 @@ def sender_screen(root: customtkinter.CTk):
     saltEquationTypeMenu.pack(pady=(10, 10), anchor="w", padx=(20, 0))
 
     # Encrypt Button
-    encryptButton = customtkinter.CTkButton(root, text="Encrypt", width=600, command=lambda: utils.encrypt.encryptMessage(secretMessageEntry.get("1.0", "end-1c"), gpgKeyPathEntry.get(), saltEquationTypeVar.get()))
+    encryptButton = customtkinter.CTkButton(main_frame, text="Encrypt", width=600, command=lambda: utils.encrypt.encryptMessage(secretMessageEntry.get("1.0", "end-1c"), gpgKeyPathEntry.get(), saltEquationTypeVar.get()))
     encryptButton.pack(pady=(10, 20), anchor="w", padx=(20, 0))
 
-    # Payload
-    payloadLabel = customtkinter.CTkLabel(root, text="View Payload", font=("Arial", 16))
-    payloadLabel.pack(pady=(12, 2), anchor="w", padx=(20, 0))
+    # Collapsible Payload Section
+    payloadHeaderFrame = customtkinter.CTkFrame(main_frame)
+    payloadHeaderFrame.pack(pady=(12, 2), anchor="w", padx=(20, 0))
 
-    payloadBox = create_log_target(root, "payload_logger", width=600, height=40, fg_color="#2b2b2b")
-    payloadBox.pack(pady=(0, 10), anchor="w", padx=(20, 0))
+    payload_expanded = {"value": False}
+
+    def toggle_payload():
+        payload_expanded["value"] = not payload_expanded["value"]
+        if payload_expanded["value"]:
+            payloadBox.pack(pady=(0, 10), anchor="w", padx=(20, 0))
+            payloadToggleButton.configure(text="View Payload")
+        else:
+            payloadBox.pack_forget()
+            payloadToggleButton.configure(text="View Payload")
+
+    payloadToggleButton = customtkinter.CTkButton(payloadHeaderFrame, text="View Payload", font=("Arial", 16), command=toggle_payload, fg_color="transparent", hover_color="#404040", width=200)
+    payloadToggleButton.pack(anchor="w", padx=(0, 0), pady=(5, 0))
+
+    payloadBox = create_log_target(main_frame, "payload_logger", width=600, height=100, fg_color="#1a1a1a")
