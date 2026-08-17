@@ -10,6 +10,12 @@ def show_gpg_key_help():
             "Select the receiver's public GPG key file for encryption."
         )
 
+def show_salt_equation_help():
+    messagebox.showinfo(
+        "Salt Equation",
+        "The salt equation is generated to improve the security of the equation."
+    )
+
 
 def sender_screen(root: customtkinter.CTk):
     root.title("SymCrypt - Sender")
@@ -65,5 +71,28 @@ def sender_screen(root: customtkinter.CTk):
     loggerBox = create_log_target(root, "encryption_logger", width=600, height=40, fg_color="#2b2b2b")
     loggerBox.pack(pady=(0, 10), anchor="w", padx=(20, 0))
 
-    encryptButton = customtkinter.CTkButton(root, text="Encrypt", width=200, command=lambda: utils.encrypt.encryptMessage(secretMessageEntry.get("1.0", "end-1c"), gpgKeyPathEntry.get()))
+    # Salt equation settings
+    saltEquationHeaderFrame = customtkinter.CTkFrame(root)
+    saltEquationHeaderFrame.pack(pady=(12, 2), anchor="w", padx=(20, 0))
+
+    saltEquationLabel = customtkinter.CTkLabel(saltEquationHeaderFrame, text="Salt Equation Type", font=("Arial", 16))
+    saltEquationLabel.grid(row=0, column=0, padx=(0, 8))
+
+    saltEquationQuickInfo = customtkinter.CTkButton(saltEquationHeaderFrame, text="?", width=30, command=show_salt_equation_help)
+    saltEquationQuickInfo.grid(row=0, column=1)
+
+    saltEquationTypeVar = customtkinter.StringVar(value="Sine")
+    saltEquationTypeMenu = customtkinter.CTkOptionMenu(
+        root,
+        values=["Sine", "Cosine", "Tan", "Square Root", "Log"],
+        variable=saltEquationTypeVar,
+        width=220,
+        fg_color="#4E4E4E",
+        button_color="#C0C0C0",
+        button_hover_color="#B0B0B0",
+    )
+    saltEquationTypeMenu.pack(pady=(10, 10), anchor="w", padx=(20, 0))
+
+    # Encrypt Button
+    encryptButton = customtkinter.CTkButton(root, text="Encrypt", width=600, command=lambda: utils.encrypt.encryptMessage(secretMessageEntry.get("1.0", "end-1c"), gpgKeyPathEntry.get(), saltEquationTypeVar.get()))
     encryptButton.pack(pady=(10, 20), anchor="w", padx=(20, 0))
