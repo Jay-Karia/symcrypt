@@ -37,6 +37,9 @@ def sender_screen(root: customtkinter.CTk):
     connectButton = customtkinter.CTkButton(connectionFrame, text="Connect", width=100)
     connectButton.grid(row=0, column=2, padx=(10, 0), pady=5)
 
+    serverStatusBox = create_log_target(main_frame, "server_status_logger", width=600, height=40, fg_color="#2b2b2b")
+    serverStatusBox.pack(pady=(0, 10), anchor="w", padx=(20, 0))
+
     # GPG Key Input
     gpgKeyHeaderFrame = customtkinter.CTkFrame(main_frame)
     gpgKeyHeaderFrame.pack(pady=(12, 2), anchor="w", padx=(20, 0))
