@@ -1,5 +1,6 @@
 import random
 import utils.gpg
+import utils.points
 
 def char_to_ascii(char):
   ascii_value = ord(char)
@@ -29,3 +30,7 @@ def encryptMessage(message, gpg_key_path):
   if gpg_key is not None:
     encrypted_data = utils.gpg.encrypt_secret_key(secret_key, gpg_key)
     print(f"Encrypted Data: {encrypted_data}")
+
+  # Generate geometric points
+  points = utils.points.generate_points(secret_key, ascii_values)
+  print(points)
