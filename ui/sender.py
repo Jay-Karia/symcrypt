@@ -96,3 +96,10 @@ def sender_screen(root: customtkinter.CTk):
     # Encrypt Button
     encryptButton = customtkinter.CTkButton(root, text="Encrypt", width=600, command=lambda: utils.encrypt.encryptMessage(secretMessageEntry.get("1.0", "end-1c"), gpgKeyPathEntry.get(), saltEquationTypeVar.get()))
     encryptButton.pack(pady=(10, 20), anchor="w", padx=(20, 0))
+
+    # Payload
+    payloadLabel = customtkinter.CTkLabel(root, text="View Payload", font=("Arial", 16))
+    payloadLabel.pack(pady=(12, 2), anchor="w", padx=(20, 0))
+
+    payloadBox = create_log_target(root, "payload_logger", width=600, height=40, fg_color="#2b2b2b")
+    payloadBox.pack(pady=(0, 10), anchor="w", padx=(20, 0))

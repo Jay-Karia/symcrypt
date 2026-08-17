@@ -67,5 +67,14 @@ def encryptMessage(message, gpg_key_path, salt_equation_type):
 
       final_equation = salt_equation + calculus_wrapper
       log("Encryption process completed successfully.", "encryption_logger", text_color="#4CAF50")
+
+      payload = {
+          "encrypted_data": encrypted_data,
+          "equation": str(final_equation)
+      }
+
+      log(f"Payload: {payload}", "payload_logger", text_color="#4CAF50")
+
+      return payload
   except Exception as e:
     log(f"Error during encryption: {str(e)}", "encryption_logger", text_color="#f54842")
