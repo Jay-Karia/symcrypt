@@ -1,8 +1,8 @@
 import customtkinter
 from tkinter import filedialog, messagebox
+import sympy as sp
 import utils.encrypt
 from logger import create_log_target
-
 
 def show_gpg_key_help():
         messagebox.showinfo(
@@ -19,6 +19,7 @@ def show_salt_equation_help():
 
 def sender_screen(root: customtkinter.CTk):
     root.title("SymCrypt - Sender")
+    math_font = customtkinter.CTkFont(family="DejaVu Sans Mono", size=12)
 
     # Create a scrollable frame for the entire content
     main_frame = customtkinter.CTkScrollableFrame(root, fg_color="transparent")
@@ -100,26 +101,13 @@ def sender_screen(root: customtkinter.CTk):
     )
     saltEquationTypeMenu.pack(pady=(10, 10), anchor="w", padx=(20, 0))
 
+    # Math equation
+    mathEquationLabel = customtkinter.CTkLabel(main_frame, text="Generated Math Equation", font=("Arial", 16))
+    mathEquationLabel.pack(pady=(12, 2), anchor="w", padx=(20, 0))
+
+    mathEquationBox = create_log_target(main_frame, "math_equation_logger", width=600, height=100, fg_color="#2b2b2b", font=math_font)
+    mathEquationBox.pack(pady=(0, 10), anchor="w", padx=(20, 0))
+
     # Encrypt Button
     encryptButton = customtkinter.CTkButton(main_frame, text="Encrypt", width=600, command=lambda: utils.encrypt.encryptMessage(secretMessageEntry.get("1.0", "end-1c"), gpgKeyPathEntry.get(), saltEquationTypeVar.get()))
     encryptButton.pack(pady=(10, 20), anchor="w", padx=(20, 0))
-
-    # Collapsible Payload Section
-    payloadHeaderFrame = customtkinter.CTkFrame(main_frame)
-    payloadHeaderFrame.pack(pady=(12, 2), anchor="w", padx=(20, 0))
-
-    payload_expanded = {"value": False}
-
-    def toggle_payload():
-        payload_expanded["value"] = not payload_expanded["value"]
-        if payload_expanded["value"]:
-            payloadBox.pack(pady=(0, 10), anchor="w", padx=(20, 0))
-            payloadToggleButton.configure(text="View Payload")
-        else:
-            payloadBox.pack_forget()
-            payloadToggleButton.configure(text="View Payload")
-
-    payloadToggleButton = customtkinter.CTkButton(payloadHeaderFrame, text="View Payload", font=("Arial", 16), command=toggle_payload, fg_color="transparent", hover_color="#404040", width=200)
-    payloadToggleButton.pack(anchor="w", padx=(0, 0), pady=(5, 0))
-
-    payloadBox = create_log_target(main_frame, "payload_logger", width=600, height=100, fg_color="#1a1a1a")
