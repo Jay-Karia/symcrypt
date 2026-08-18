@@ -118,5 +118,5 @@ def sender_screen(root: customtkinter.CTk):
     mathEquationBox.pack(pady=(0, 10), anchor="w", padx=(20, 0))
 
     # Encrypt Button
-    encryptButton = customtkinter.CTkButton(main_frame, text="Encrypt", width=600, command=lambda: utils.encrypt.encryptMessage(secretMessageEntry.get("1.0", "end-1c"), gpgKeyPathEntry.get(), saltEquationTypeVar.get()))
+    encryptButton = customtkinter.CTkButton(main_frame, text="Encrypt and Send", width=600, command=lambda: utils.encrypt.encryptMessage(secretMessageEntry.get("1.0", "end-1c"), gpgKeyPathEntry.get(), saltEquationTypeVar.get()))
     encryptButton.pack(pady=(10, 20), anchor="w", padx=(20, 0))
