@@ -67,7 +67,6 @@ def encryptMessage(message, gpg_key_path, salt_equation_type):
 
       final_equation = salt_equation + calculus_wrapper
       final_equation = sp.pretty(final_equation, use_unicode=True)
-      print(final_equation)
       log("Encryption process completed successfully.", "encryption_logger", text_color="#4CAF50")
 
       log(final_equation, "math_equation_logger", text_color="#4CAF50")

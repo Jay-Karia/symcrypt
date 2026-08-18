@@ -105,7 +105,16 @@ def sender_screen(root: customtkinter.CTk):
     mathEquationLabel = customtkinter.CTkLabel(main_frame, text="Generated Math Equation", font=("Arial", 16))
     mathEquationLabel.pack(pady=(12, 2), anchor="w", padx=(20, 0))
 
-    mathEquationBox = create_log_target(main_frame, "math_equation_logger", width=600, height=100, fg_color="#2b2b2b", font=math_font)
+    mathEquationBox = create_log_target(
+        main_frame,
+        "math_equation_logger",
+        width=600,
+        height=180,  # Increase height for multi-line 2D expressions
+        fg_color="#2b2b2b",
+        font=math_font,
+        wrap="none",  # Prevents equation folding
+        activate_scrollbars=True,
+    )
     mathEquationBox.pack(pady=(0, 10), anchor="w", padx=(20, 0))
 
     # Encrypt Button
