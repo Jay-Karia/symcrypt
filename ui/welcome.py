@@ -1,10 +1,7 @@
 import customtkinter as ctk
-from ui.receiver import receiver_screen
-from ui.sender import sender_screen
 
 
 def clear_screen(root):
-    """Clear all widgets from the root window."""
     for widget in root.winfo_children():
         widget.destroy()
 
@@ -12,8 +9,12 @@ def clear_screen(root):
 def onModeButtonClick(mode: str, root: ctk.CTk):
     clear_screen(root)
     if mode == "Sender":
+        from ui.sender import sender_screen
+
         sender_screen(root)
     elif mode == "Receiver":
+        from ui.receiver import receiver_screen
+
         receiver_screen(root)
 
 
@@ -45,7 +46,6 @@ def bind_smooth_hover(
     steps: int = 8,
     delay_ms: int = 15,
 ):
-    """Applies a smooth linear color transition on mouse enter and leave."""
     current_step = 0
     anim_id = None
 
@@ -88,18 +88,16 @@ def welcome_screen(root: ctk.CTk):
 
     ctk.set_appearance_mode("dark")
 
-    # Palette Constants
-    COLOR_ECLIPSE = "#0c1818"         # Deep dark background
-    COLOR_FOREST_ROAST = "#2b3d37"    # Button idle surface
-    COLOR_FOREST_HOVER = "#3a4f48"    # Button active surface
-    COLOR_BORDER_IDLE = "#40534C"     # Subtle border
-    COLOR_BORDER_HOVER = "#677D6A"    # Glowing border accent (Matcha Brew)
-    COLOR_ALMOND = "#D6BD98"          # Typography
-    COLOR_SUBTITLE = "#677D6A"        # Muted secondary text
+    COLOR_ECLIPSE = "#0c1818"
+    COLOR_FOREST_ROAST = "#2b3d37"
+    COLOR_FOREST_HOVER = "#3a4f48"
+    COLOR_BORDER_IDLE = "#40534C"
+    COLOR_BORDER_HOVER = "#677D6A"
+    COLOR_ALMOND = "#D6BD98"
+    COLOR_SUBTITLE = "#677D6A"
 
     root.configure(fg_color=COLOR_ECLIPSE)
 
-    # Main centered container
     frame = ctk.CTkFrame(root, fg_color="transparent")
     frame.place(relx=0.5, rely=0.5, anchor="center")
 
@@ -122,7 +120,6 @@ def welcome_screen(root: ctk.CTk):
     button_frame = ctk.CTkFrame(frame, fg_color="transparent")
     button_frame.pack()
 
-    # Sender Button
     sender_button = ctk.CTkButton(
         button_frame,
         text="Sender",
@@ -134,12 +131,11 @@ def welcome_screen(root: ctk.CTk):
         border_width=1,
         height=110,
         width=200,
-        corner_radius=18,
+        corner_radius=0,
         command=lambda: onModeButtonClick("Sender", root),
     )
     sender_button.grid(row=0, column=0, padx=16)
 
-    # Receiver Button
     receiver_button = ctk.CTkButton(
         button_frame,
         text="Receiver",
@@ -151,12 +147,11 @@ def welcome_screen(root: ctk.CTk):
         border_width=1,
         height=110,
         width=200,
-        corner_radius=18,
+        corner_radius=0,
         command=lambda: onModeButtonClick("Receiver", root),
     )
     receiver_button.grid(row=0, column=1, padx=16)
 
-    # Apply smooth color transitions
     bind_smooth_hover(
         sender_button,
         root,
@@ -181,9 +176,3 @@ def welcome_screen(root: ctk.CTk):
         text_color=COLOR_SUBTITLE,
     )
     footer.pack(pady=(36, 0))
-
-
-if __name__ == "__main__":
-    app = ctk.CTk()
-    welcome_screen(app)
-    app.mainloop()
