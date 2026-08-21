@@ -4,14 +4,16 @@ import sympy as sp
 import utils.encrypt
 from logger import create_log_target
 
-# Palette Constants
-COLOR_ECLIPSE = "#0c1818"         # Dark Canvas
-COLOR_CARD_BG = "#1d2e2b"         # Surface Panels (Forest Roast Tone)
-COLOR_INPUT_BG = "#12201e"        # Textbox/Input Interior
-COLOR_BORDER = "#40534C"          # Neutral Framing
-COLOR_MATCHA_BREW = "#677D6A"     # Green Accent / Badges
-COLOR_ALMOND = "#D6BD98"          # Warm Cream Accent / Headings
-COLOR_ALMOND_HOVER = "#e5d3b8"
+# High-Vibrancy Palette
+COLOR_ECLIPSE = "#091212"
+COLOR_CARD_BG = "#162b26"
+COLOR_INPUT_BG = "#0d1b18"
+COLOR_BORDER = "#677D6A"
+COLOR_MATCHA_BREW = "#7E9F82"
+COLOR_MATCHA_HOVER = "#94B698"
+COLOR_ALMOND = "#E2CCA7"
+COLOR_ALMOND_HOVER = "#F0E1C6"
+COLOR_ACCENT_TEXT = "#E2CCA7"
 
 
 def show_gpg_key_help():
@@ -94,7 +96,7 @@ def open_settings_modal(parent: customtkinter.CTk):
         values=["8 bytes / poly", "16 bytes / poly", "32 bytes / poly"],
         fg_color=COLOR_INPUT_BG,
         button_color=COLOR_MATCHA_BREW,
-        button_hover_color="#768f79",
+        button_hover_color=COLOR_MATCHA_HOVER,
         text_color=COLOR_ALMOND,
         dropdown_fg_color=COLOR_CARD_BG,
         dropdown_text_color=COLOR_ALMOND,
@@ -130,7 +132,7 @@ def sender_screen(root: customtkinter.CTk):
         top_bar,
         fg_color=COLOR_MATCHA_BREW,
         border_color=COLOR_ALMOND,
-        border_width=1,
+        border_width=2,
         corner_radius=0,
     )
     mode_badge.pack(side="left")
@@ -139,9 +141,9 @@ def sender_screen(root: customtkinter.CTk):
         mode_badge,
         text="SENDER MODE",
         font=customtkinter.CTkFont(family="DejaVu Sans Mono", size=11, weight="bold"),
-        text_color=COLOR_ALMOND,
+        text_color=COLOR_ECLIPSE,
     )
-    mode_badge_lbl.pack(padx=10, pady=3)
+    mode_badge_lbl.pack(padx=12, pady=4)
 
     settings_btn = customtkinter.CTkButton(
         top_bar,
@@ -152,7 +154,7 @@ def sender_screen(root: customtkinter.CTk):
         fg_color=COLOR_CARD_BG,
         hover_color=COLOR_MATCHA_BREW,
         border_color=COLOR_MATCHA_BREW,
-        border_width=1,
+        border_width=2,
         text_color=COLOR_ALMOND,
         font=customtkinter.CTkFont(family="Inter", size=12, weight="bold"),
         command=lambda: open_settings_modal(root),
@@ -166,13 +168,12 @@ def sender_screen(root: customtkinter.CTk):
     left_col.pack(side="left", fill="both", padx=(0, 14))
     left_col.pack_propagate(False)
 
-    # --- Network Connection Card ---
     card_conn = customtkinter.CTkFrame(
         left_col,
         fg_color=COLOR_CARD_BG,
         corner_radius=0,
         border_color=COLOR_MATCHA_BREW,
-        border_width=1,
+        border_width=2,
     )
     card_conn.pack(fill="x", pady=(0, 14))
 
@@ -192,7 +193,7 @@ def sender_screen(root: customtkinter.CTk):
         placeholder_text="Server Address",
         font=customtkinter.CTkFont(family="DejaVu Sans Mono", size=12),
         fg_color=COLOR_INPUT_BG,
-        border_color=COLOR_BORDER,
+        border_color=COLOR_MATCHA_BREW,
         border_width=1,
         corner_radius=0,
         text_color=COLOR_ALMOND,
@@ -207,10 +208,10 @@ def sender_screen(root: customtkinter.CTk):
         height=36,
         corner_radius=0,
         fg_color=COLOR_MATCHA_BREW,
-        hover_color="#768f79",
+        hover_color=COLOR_MATCHA_HOVER,
         border_color=COLOR_ALMOND,
         border_width=1,
-        text_color=COLOR_ALMOND,
+        text_color=COLOR_ECLIPSE,
         font=customtkinter.CTkFont(family="Inter", size=12, weight="bold"),
     )
     connectButton.pack(side="right")
@@ -220,13 +221,12 @@ def sender_screen(root: customtkinter.CTk):
     )
     serverStatusBox.pack(fill="x", padx=16, pady=(0, 14))
 
-    # --- Crypto Configuration Card ---
     card_sec = customtkinter.CTkFrame(
         left_col,
         fg_color=COLOR_CARD_BG,
         corner_radius=0,
         border_color=COLOR_MATCHA_BREW,
-        border_width=1,
+        border_width=2,
     )
     card_sec.pack(fill="both", expand=True)
 
@@ -247,9 +247,9 @@ def sender_screen(root: customtkinter.CTk):
         width=22,
         height=22,
         corner_radius=0,
-        fg_color=COLOR_BORDER,
-        hover_color=COLOR_MATCHA_BREW,
-        text_color=COLOR_ALMOND,
+        fg_color=COLOR_MATCHA_BREW,
+        hover_color=COLOR_MATCHA_HOVER,
+        text_color=COLOR_ECLIPSE,
         font=customtkinter.CTkFont(size=11, weight="bold"),
         command=show_gpg_key_help,
     )
@@ -263,7 +263,7 @@ def sender_screen(root: customtkinter.CTk):
         placeholder_text="Select GPG key file",
         font=customtkinter.CTkFont(family="Inter", size=12),
         fg_color=COLOR_INPUT_BG,
-        border_color=COLOR_BORDER,
+        border_color=COLOR_MATCHA_BREW,
         border_width=1,
         corner_radius=0,
         text_color=COLOR_ALMOND,
@@ -287,10 +287,10 @@ def sender_screen(root: customtkinter.CTk):
         height=36,
         corner_radius=0,
         fg_color=COLOR_MATCHA_BREW,
-        hover_color="#768f79",
+        hover_color=COLOR_MATCHA_HOVER,
         border_color=COLOR_ALMOND,
         border_width=1,
-        text_color=COLOR_ALMOND,
+        text_color=COLOR_ECLIPSE,
         font=customtkinter.CTkFont(family="Inter", size=12, weight="bold"),
         command=browse_gpg_key_file,
     )
@@ -313,10 +313,10 @@ def sender_screen(root: customtkinter.CTk):
         width=20,
         height=20,
         corner_radius=0,
-        fg_color=COLOR_BORDER,
-        hover_color=COLOR_MATCHA_BREW,
-        text_color=COLOR_ALMOND,
-        font=customtkinter.CTkFont(size=11),
+        fg_color=COLOR_MATCHA_BREW,
+        hover_color=COLOR_MATCHA_HOVER,
+        text_color=COLOR_ECLIPSE,
+        font=customtkinter.CTkFont(size=11, weight="bold"),
         command=show_salt_equation_help,
     )
     saltEquationQuickInfo.pack(side="left", padx=(8, 0))
@@ -330,24 +330,22 @@ def sender_screen(root: customtkinter.CTk):
         corner_radius=0,
         fg_color=COLOR_INPUT_BG,
         button_color=COLOR_MATCHA_BREW,
-        button_hover_color="#768f79",
+        button_hover_color=COLOR_MATCHA_HOVER,
         text_color=COLOR_ALMOND,
         dropdown_fg_color=COLOR_CARD_BG,
         dropdown_text_color=COLOR_ALMOND,
     )
     saltEquationTypeMenu.pack(fill="x", padx=16, pady=(0, 16))
 
-    # --- Right Column ---
     right_col = customtkinter.CTkFrame(dashboard, fg_color="transparent")
     right_col.pack(side="right", fill="both", expand=True)
 
-    # --- Message Card ---
     card_msg = customtkinter.CTkFrame(
         right_col,
         fg_color=COLOR_CARD_BG,
         corner_radius=0,
         border_color=COLOR_MATCHA_BREW,
-        border_width=1,
+        border_width=2,
     )
     card_msg.pack(fill="both", expand=True, pady=(0, 14))
 
@@ -366,14 +364,14 @@ def sender_screen(root: customtkinter.CTk):
         msg_header,
         text="0 chars",
         font=customtkinter.CTkFont(family="DejaVu Sans Mono", size=11, weight="bold"),
-        text_color=COLOR_ALMOND,
+        text_color=COLOR_MATCHA_BREW,
     )
     counter_label.pack(side="right")
 
     secretMessageEntry = customtkinter.CTkTextbox(
         card_msg,
         fg_color=COLOR_INPUT_BG,
-        border_color=COLOR_BORDER,
+        border_color=COLOR_MATCHA_BREW,
         border_width=1,
         corner_radius=0,
         text_color=COLOR_ALMOND,
@@ -392,13 +390,12 @@ def sender_screen(root: customtkinter.CTk):
     )
     loggerBox.pack(fill="x", padx=16, pady=(0, 14))
 
-    # --- Math Output Card ---
     card_math = customtkinter.CTkFrame(
         right_col,
         fg_color=COLOR_CARD_BG,
         corner_radius=0,
         border_color=COLOR_MATCHA_BREW,
-        border_width=1,
+        border_width=2,
     )
     card_math.pack(fill="both", expand=True, pady=(0, 14))
 
@@ -426,7 +423,7 @@ def sender_screen(root: customtkinter.CTk):
             fg_color=COLOR_CARD_BG,
             text_color=COLOR_ALMOND,
             border_color=COLOR_MATCHA_BREW,
-            border_width=1,
+            border_width=2,
             corner_radius=0,
         )
         viewer.pack(fill="both", expand=True, padx=16, pady=16)
@@ -439,10 +436,10 @@ def sender_screen(root: customtkinter.CTk):
         height=22,
         corner_radius=0,
         fg_color=COLOR_MATCHA_BREW,
-        hover_color="#768f79",
+        hover_color=COLOR_MATCHA_HOVER,
         border_color=COLOR_ALMOND,
         border_width=1,
-        text_color=COLOR_ALMOND,
+        text_color=COLOR_ECLIPSE,
         font=customtkinter.CTkFont(size=11, weight="bold"),
         command=open_expanded_math_modal,
     )
@@ -459,7 +456,6 @@ def sender_screen(root: customtkinter.CTk):
     )
     mathEquationBox.pack(fill="both", expand=True, padx=16, pady=(0, 14))
 
-    # --- Prominent Action Button ---
     encryptButton = customtkinter.CTkButton(
         right_col,
         text="Encrypt and Send",
