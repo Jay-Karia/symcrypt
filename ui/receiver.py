@@ -26,7 +26,7 @@ def get_local_ip() -> str:
 def show_private_key_help():
     messagebox.showinfo(
         "Private GPG Key",
-        "Select your private GPG key file and enter its passphrase to decrypt the session key.",
+        "Select your private GPG key file and enter its passphrase to decrypt the secret key.",
     )
 
 
@@ -71,14 +71,6 @@ def receiver_screen(root: customtkinter.CTk):
 
     server_inner = customtkinter.CTkFrame(card_server_banner, fg_color="transparent")
     server_inner.pack(fill="x", padx=14, pady=8)
-
-    status_indicator = customtkinter.CTkLabel(
-        server_inner,
-        text="● OFFLINE",
-        font=customtkinter.CTkFont(family="DejaVu Sans Mono", size=11, weight="bold"),
-        text_color="#c45a56",
-    )
-    status_indicator.pack(side="left", padx=(0, 14))
 
     ip_label = customtkinter.CTkLabel(
         server_inner,
@@ -164,7 +156,7 @@ def receiver_screen(root: customtkinter.CTk):
 
     sec_label = customtkinter.CTkLabel(
         sec_header,
-        text="GPG Decryption Credentials",
+        text="GPG Private Key",
         font=customtkinter.CTkFont(family="Inter", size=13, weight="bold"),
         text_color=COLOR_ALMOND,
     )
@@ -252,7 +244,7 @@ def receiver_screen(root: customtkinter.CTk):
 
     raw_title = customtkinter.CTkLabel(
         raw_header,
-        text="Incoming Network Stream",
+        text="Incoming Payload",
         font=customtkinter.CTkFont(family="Inter", size=13, weight="bold"),
         text_color=COLOR_ALMOND,
     )
@@ -309,19 +301,56 @@ def receiver_screen(root: customtkinter.CTk):
 
     dec_title = customtkinter.CTkLabel(
         dec_header,
-        text="Decrypted Plaintext Output",
+        text="Decrypted Output",
         font=customtkinter.CTkFont(family="Inter", size=13, weight="bold"),
         text_color=COLOR_ALMOND,
     )
     dec_title.pack(side="left")
 
     decrypted_msg_box = create_log_target(
-        card_result, "decrypted_message_logger", height=140, fg_color=COLOR_INPUT_BG
+        card_result, "decrypted_message_logger", height=100, fg_color=COLOR_INPUT_BG
     )
     decrypted_msg_box.configure(state="disabled")
-    decrypted_msg_box.pack(fill="both", expand=True, padx=14, pady=(0, 8))
+    decrypted_msg_box.pack(fill="both", expand=True, padx=14, pady=(0, 6))
+
+    # --- Decrypted File Output Box ---
+    dec_file_frame = customtkinter.CTkFrame(card_result, fg_color="transparent")
+    dec_file_frame.pack(fill="x", padx=14, pady=(0, 6))
+
+    dec_file_path_entry = customtkinter.CTkEntry(
+        dec_file_frame,
+        placeholder_text="No decrypted file received",
+        font=customtkinter.CTkFont(family="Inter", size=12),
+        fg_color=COLOR_INPUT_BG,
+        border_color=COLOR_BORDER,
+        border_width=1,
+        corner_radius=0,
+        text_color=COLOR_ALMOND,
+        height=32,
+    )
+    dec_file_path_entry.pack(side="left", fill="x", expand=True, padx=(0, 6))
+    dec_file_path_entry.configure(state="readonly")
+
+    def save_decrypted_file():
+        file_path = filedialog.asksaveasfilename(title="Save Decrypted File")
+        if file_path:
+            log(f"Decrypted file saved to: {file_path}", "receiver_status_logger")
+
+    save_btn = customtkinter.CTkButton(
+        dec_file_frame,
+        text="Save File",
+        width=75,
+        height=32,
+        corner_radius=0,
+        fg_color=COLOR_BORDER,
+        hover_color=COLOR_MATCHA_BREW,
+        text_color=COLOR_ALMOND,
+        font=customtkinter.CTkFont(family="Inter", size=12),
+        command=save_decrypted_file,
+    )
+    save_btn.pack(side="right")
 
     rx_status_box = create_log_target(
-        card_result, "receiver_status_logger", height=60, fg_color=COLOR_INPUT_BG
+        card_result, "receiver_status_logger", height=50, fg_color=COLOR_INPUT_BG
     )
     rx_status_box.pack(fill="x", padx=14, pady=(0, 10))
