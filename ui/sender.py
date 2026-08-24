@@ -26,6 +26,13 @@ def show_gpg_key_help():
     )
 
 
+def show_secret_file_help():
+    messagebox.showinfo(
+        "Secret File",
+        "Optionally select a file whose contents will be read and encrypted."
+    )
+
+
 def show_salt_equation_help():
     messagebox.showinfo(
         "Salt Equation",
@@ -354,7 +361,7 @@ def sender_screen(root: customtkinter.CTk):
             gpgKeyPathEntry.insert(0, file_path)
             gpgKeyPathEntry.configure(state="readonly")
 
-    browseButton = customtkinter.CTkButton(
+    browseGpgButton = customtkinter.CTkButton(
         gpgKeyFrame,
         text="Browse",
         width=80,
@@ -366,7 +373,7 @@ def sender_screen(root: customtkinter.CTk):
         font=customtkinter.CTkFont(family="Inter", size=12),
         command=browse_gpg_key_file,
     )
-    browseButton.pack(side="right")
+    browseGpgButton.pack(side="right")
 
     salt_header = customtkinter.CTkFrame(card_sec, fg_color="transparent")
     salt_header.pack(fill="x", padx=14, pady=(0, 4))
@@ -418,7 +425,7 @@ def sender_screen(root: customtkinter.CTk):
     right_col.grid_rowconfigure(1, weight=2)
     right_col.grid_rowconfigure(2, weight=0)
 
-    # --- Message Card ---
+    # --- Message & Secret File Card ---
     card_msg = customtkinter.CTkFrame(
         right_col,
         fg_color=COLOR_CARD_BG,
@@ -464,8 +471,73 @@ def sender_screen(root: customtkinter.CTk):
 
     secretMessageEntry.bind("<KeyRelease>", update_char_count)
 
+    # --- Secret File Input ---
+    secret_file_header = customtkinter.CTkFrame(card_msg, fg_color="transparent")
+    secret_file_header.pack(fill="x", padx=14, pady=(4, 2))
+
+    secretFileLabel = customtkinter.CTkLabel(
+        secret_file_header,
+        text="Secret File",
+        font=customtkinter.CTkFont(family="Inter", size=13, weight="bold"),
+        text_color=COLOR_ALMOND,
+    )
+    secretFileLabel.pack(side="left")
+
+    secretFileQuickInfo = customtkinter.CTkButton(
+        secret_file_header,
+        text="?",
+        width=18,
+        height=18,
+        corner_radius=0,
+        fg_color=COLOR_BORDER,
+        hover_color=COLOR_MATCHA_BREW,
+        text_color=COLOR_ALMOND,
+        font=customtkinter.CTkFont(size=11, weight="bold"),
+        command=show_secret_file_help,
+    )
+    secretFileQuickInfo.pack(side="left", padx=(8, 0))
+
+    secretFileFrame = customtkinter.CTkFrame(card_msg, fg_color="transparent")
+    secretFileFrame.pack(fill="x", padx=14, pady=(0, 8))
+
+    secretFilePathEntry = customtkinter.CTkEntry(
+        secretFileFrame,
+        placeholder_text="Select secret file (optional)",
+        font=customtkinter.CTkFont(family="Inter", size=12),
+        fg_color=COLOR_INPUT_BG,
+        border_color=COLOR_BORDER,
+        border_width=1,
+        corner_radius=0,
+        text_color=COLOR_ALMOND,
+        height=32,
+    )
+    secretFilePathEntry.pack(side="left", fill="x", expand=True, padx=(0, 8))
+    secretFilePathEntry.configure(state="readonly")
+
+    def browse_secret_file():
+        file_path = filedialog.askopenfilename(title="Select Secret File")
+        if file_path:
+            secretFilePathEntry.configure(state="normal")
+            secretFilePathEntry.delete(0, "end")
+            secretFilePathEntry.insert(0, file_path)
+            secretFilePathEntry.configure(state="readonly")
+
+    browseSecretFileButton = customtkinter.CTkButton(
+        secretFileFrame,
+        text="Browse",
+        width=80,
+        height=32,
+        corner_radius=0,
+        fg_color=COLOR_BORDER,
+        hover_color=COLOR_MATCHA_BREW,
+        text_color=COLOR_ALMOND,
+        font=customtkinter.CTkFont(family="Inter", size=12),
+        command=browse_secret_file,
+    )
+    browseSecretFileButton.pack(side="right")
+
     loggerBox = create_log_target(
-        card_msg, "encryption_logger", height=85, fg_color=COLOR_INPUT_BG
+        card_msg, "encryption_logger", height=100, fg_color=COLOR_INPUT_BG
     )
     loggerBox.pack(fill="x", padx=14, pady=(0, 10))
 
@@ -568,6 +640,7 @@ def sender_screen(root: customtkinter.CTk):
     # --- Encrypt Button ---
     def trigger_encryption():
         msg = secretMessageEntry.get("1.0", "end-1c")
+        secret_file = secretFilePathEntry.get()
         gpg_key = gpgKeyPathEntry.get()
         salt_type = saltEquationTypeVar.get()
 
