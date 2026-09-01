@@ -1,5 +1,5 @@
 # SymCrypt
-A desktop application than encrypts secret messages into math equations
+A secure file transfer and messaging tool that hides data inside mathematical equations and transfers it seamlessly over TCP sockets.
 
 ## Setup
 
