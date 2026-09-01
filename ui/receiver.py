@@ -2,6 +2,7 @@ import customtkinter
 from tkinter import filedialog, messagebox
 import socket
 from logger import create_log_target, log
+from server.main import start_server
 
 COLOR_ECLIPSE = "#0d1818"
 COLOR_CARD_BG = "#152422"
@@ -72,49 +73,21 @@ def receiver_screen(root: customtkinter.CTk):
     server_inner = customtkinter.CTkFrame(card_server_banner, fg_color="transparent")
     server_inner.pack(fill="x", padx=14, pady=8)
 
+    server_label = customtkinter.CTkLabel(
+        server_inner,
+        text="Start the server to listen for incoming payloads on ",
+        font=customtkinter.CTkFont(family="Inter", size=12),
+        text_color=COLOR_ALMOND,
+    )
+    server_label.pack(side="left", padx=(0, 0))
+
     ip_label = customtkinter.CTkLabel(
         server_inner,
-        text="IP:",
-        font=customtkinter.CTkFont(family="Inter", size=12, weight="bold"),
-        text_color=COLOR_ALMOND,
+        text=f"{get_local_ip()}:5000",
+        font=customtkinter.CTkFont(family="DejaVu Sans Mono", size=12, weight="bold"),
+        text_color=COLOR_ALMOND_HOVER,
     )
-    ip_label.pack(side="left", padx=(0, 6))
-
-    ip_entry = customtkinter.CTkEntry(
-        server_inner,
-        font=customtkinter.CTkFont(family="DejaVu Sans Mono", size=12),
-        fg_color=COLOR_INPUT_BG,
-        border_color=COLOR_BORDER,
-        border_width=1,
-        corner_radius=0,
-        text_color=COLOR_ALMOND,
-        width=150,
-        height=32,
-    )
-    ip_entry.pack(side="left", padx=(0, 12))
-    ip_entry.insert(0, get_local_ip())
-
-    port_label = customtkinter.CTkLabel(
-        server_inner,
-        text="Port:",
-        font=customtkinter.CTkFont(family="Inter", size=12, weight="bold"),
-        text_color=COLOR_ALMOND,
-    )
-    port_label.pack(side="left", padx=(0, 6))
-
-    port_entry = customtkinter.CTkEntry(
-        server_inner,
-        font=customtkinter.CTkFont(family="DejaVu Sans Mono", size=12),
-        fg_color=COLOR_INPUT_BG,
-        border_color=COLOR_BORDER,
-        border_width=1,
-        corner_radius=0,
-        text_color=COLOR_ALMOND,
-        width=75,
-        height=32,
-    )
-    port_entry.pack(side="left", padx=(0, 14))
-    port_entry.insert(0, "5000")
+    ip_label.pack(side="left", padx=(0, 10))
 
     server_toggle_btn = customtkinter.CTkButton(
         server_inner,
@@ -126,6 +99,7 @@ def receiver_screen(root: customtkinter.CTk):
         hover_color=COLOR_MATCHA_BREW,
         text_color=COLOR_ALMOND,
         font=customtkinter.CTkFont(family="Inter", size=12, weight="bold"),
+        command=lambda: start_server()
     )
     server_toggle_btn.pack(side="left")
 
