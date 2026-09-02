@@ -81,13 +81,44 @@ def receiver_screen(root: customtkinter.CTk):
     )
     server_label.pack(side="left", padx=(0, 0))
 
-    ip_label = customtkinter.CTkLabel(
+    # IP address box with distinct styling and copy functionality
+    ip_box = customtkinter.CTkFrame(
         server_inner,
-        text=f"{get_local_ip()}:5000",
-        font=customtkinter.CTkFont(family="DejaVu Sans Mono", size=12, weight="bold"),
-        text_color=COLOR_ALMOND_HOVER,
+        fg_color=COLOR_INPUT_BG,
+        border_color=COLOR_MATCHA_BREW,
+        border_width=2,
+        corner_radius=4,
     )
-    ip_label.pack(side="left", padx=(0, 10))
+    ip_box.pack(side="left", padx=(0, 10))
+
+    ip_text = f"{get_local_ip()}:5000"
+
+    ip_label = customtkinter.CTkLabel(
+        ip_box,
+        text=ip_text,
+        font=customtkinter.CTkFont(family="DejaVu Sans Mono", size=12, weight="bold"),
+        text_color=COLOR_MATCHA_BREW,
+    )
+    ip_label.pack(side="left", padx=8, pady=4)
+
+    def copy_ip():
+        root.clipboard_clear()
+        root.clipboard_append(ip_text)
+        root.update()
+
+    copy_btn = customtkinter.CTkButton(
+        ip_box,
+        text="📋",
+        width=24,
+        height=24,
+        corner_radius=2,
+        fg_color=COLOR_MATCHA_BREW,
+        hover_color=COLOR_ALMOND,
+        text_color=COLOR_ECLIPSE,
+        font=customtkinter.CTkFont(size=11),
+        command=copy_ip,
+    )
+    copy_btn.pack(side="left", padx=(0, 6), pady=4)
 
     server_toggle_btn = customtkinter.CTkButton(
         server_inner,
@@ -104,7 +135,7 @@ def receiver_screen(root: customtkinter.CTk):
     server_toggle_btn.pack(side="left")
 
     rx_server_log = create_log_target(
-        server_inner, "receiver_server_logger", height=32, fg_color=COLOR_INPUT_BG
+        server_inner, "receiver_server_logger", height=42, fg_color=COLOR_INPUT_BG
     )
     rx_server_log.pack(side="right", fill="x", expand=True, padx=(16, 0))
 
