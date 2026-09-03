@@ -75,7 +75,7 @@ def receiver_screen(root: customtkinter.CTk):
 
     server_label = customtkinter.CTkLabel(
         server_inner,
-        text="Start the server to listen for incoming payloads on ",
+        text="Run the server on ",
         font=customtkinter.CTkFont(family="Inter", size=12),
         text_color=COLOR_ALMOND,
     )
