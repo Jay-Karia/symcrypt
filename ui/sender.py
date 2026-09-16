@@ -2,7 +2,8 @@ import customtkinter
 from tkinter import filedialog, messagebox, Canvas, Scrollbar
 import sympy as sp
 import utils.encrypt
-from logger import create_log_target
+from logger import create_log_target, log
+from server.client import connect_to_server
 
 import matplotlib
 matplotlib.use("TkAgg")
@@ -294,11 +295,12 @@ def sender_screen(root: customtkinter.CTk):
         hover_color=COLOR_MATCHA_BREW,
         text_color=COLOR_ALMOND,
         font=customtkinter.CTkFont(family="Inter", size=12, weight="bold"),
+        command=lambda: connect_to_server(serverAddressEntry.get()),
     )
     connectButton.pack(side="right")
 
     serverStatusBox = create_log_target(
-        card_conn, "server_status_logger", height=32, fg_color=COLOR_INPUT_BG
+        card_conn, "server_status_logger", height=42, fg_color=COLOR_INPUT_BG
     )
     serverStatusBox.pack(fill="x", padx=14, pady=(0, 10))
 
