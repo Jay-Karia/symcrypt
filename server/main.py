@@ -7,6 +7,7 @@ is_server_running = False
 _server_socket = None
 _server_thread = None
 _connection_prompt_callback = None
+_payload_received_callback = None
 _active_client_sockets = set()
 _active_client_lock = threading.Lock()
 
@@ -17,6 +18,11 @@ APPROVAL_REJECTED = b"REJECTED"
 def register_connection_prompt(callback):
   global _connection_prompt_callback
   _connection_prompt_callback = callback
+
+
+def register_payload_received_callback(callback):
+  global _payload_received_callback
+  _payload_received_callback = callback
 
 
 def create_server(host="0.0.0.0", port=5000):
@@ -97,6 +103,17 @@ def _run_server(server_socket, host, port):
             "receiver_server_logger",
           )
           break
+
+        readable_payload = payload.decode("utf-8", errors="replace")
+
+        if _payload_received_callback is not None:
+          try:
+            _payload_received_callback(readable_payload)
+          except Exception as exc:
+            log(
+              f"Payload display callback failed: {exc}",
+              "receiver_server_logger",
+            )
 
         log(
           f"Received {len(payload)} bytes from sender.",

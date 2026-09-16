@@ -3,7 +3,7 @@ from tkinter import filedialog, messagebox
 import socket
 import threading
 from logger import create_log_target, log
-from server.main import register_connection_prompt, start_server, stop_server
+from server.main import register_connection_prompt, register_payload_received_callback, start_server, stop_server
 
 COLOR_ECLIPSE = "#0d1818"
 COLOR_CARD_BG = "#152422"
@@ -307,11 +307,20 @@ def receiver_screen(root: customtkinter.CTk):
         "incoming_payload_logger",
         height=180,
         fg_color=COLOR_INPUT_BG,
-        wrap="none",
+        wrap="word",
         activate_scrollbars=True,
     )
     raw_payload_box.configure(state="disabled")
     raw_payload_box.pack(fill="both", expand=True, padx=14, pady=(0, 10))
+
+    def show_incoming_payload(payload_text: str):
+        raw_payload_box.configure(state="normal")
+        raw_payload_box.delete("1.0", "end")
+        raw_payload_box.insert("end", payload_text)
+        raw_payload_box.configure(state="disabled")
+        raw_status.configure(text="received")
+
+    register_payload_received_callback(show_incoming_payload)
 
     # --- RIGHT PANE: Output Inspector & Direct Action ---
     right_pane = customtkinter.CTkFrame(workbench, fg_color="transparent")
