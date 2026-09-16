@@ -1,4 +1,5 @@
 import socket
+import struct
 import threading
 
 from logger import log
@@ -13,6 +14,23 @@ _active_client_lock = threading.Lock()
 
 APPROVAL_OK = b"APPROVED"
 APPROVAL_REJECTED = b"REJECTED"
+
+
+def _recv_exact(sock, num_bytes):
+  data = bytearray()
+
+  while len(data) < num_bytes:
+    try:
+      chunk = sock.recv(num_bytes - len(data))
+    except OSError:
+      return None
+
+    if not chunk:
+      return None
+
+    data.extend(chunk)
+
+  return bytes(data)
 
 
 def register_connection_prompt(callback):
@@ -92,14 +110,19 @@ def _run_server(server_socket, host, port):
       )
 
       while is_server_running:
-        try:
-          payload = client_socket.recv(4096)
-        except OSError:
-          break
-
-        if not payload:
+        payload_size_header = _recv_exact(client_socket, 8)
+        if payload_size_header is None:
           log(
             "Sender disconnected from receiver.",
+            "receiver_server_logger",
+          )
+          break
+
+        payload_size = struct.unpack("!Q", payload_size_header)[0]
+        payload = _recv_exact(client_socket, payload_size)
+        if payload is None:
+          log(
+            "Sender disconnected before payload was fully received.",
             "receiver_server_logger",
           )
           break
@@ -116,7 +139,7 @@ def _run_server(server_socket, host, port):
             )
 
         log(
-          f"Received {len(payload)} bytes from sender.",
+          f"Received full payload ({len(payload)} bytes) from sender.",
           "receiver_server_logger",
         )
 

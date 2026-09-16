@@ -1,6 +1,7 @@
 """Client for connecting to and sending payloads to the receiver's TCP server."""
 
 import socket
+import struct
 import threading
 from tkinter import messagebox
 
@@ -118,9 +119,10 @@ def send_payload(payload: bytes) -> bool:
         return False
 
     try:
-        _client_socket.sendall(payload)
+        payload_header = struct.pack("!Q", len(payload))
+        _client_socket.sendall(payload_header + payload)
         log(
-            f"Sent {len(payload)} bytes to receiver.",
+            f"Sent full payload ({len(payload)} bytes) to receiver.",
             "server_status_logger",
         )
         return True
