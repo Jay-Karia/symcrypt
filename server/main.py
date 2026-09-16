@@ -7,6 +7,8 @@ is_server_running = False
 _server_socket = None
 _server_thread = None
 _connection_prompt_callback = None
+_active_client_sockets = set()
+_active_client_lock = threading.Lock()
 
 APPROVAL_OK = b"APPROVED"
 APPROVAL_REJECTED = b"REJECTED"
@@ -40,6 +42,9 @@ def _run_server(server_socket, host, port):
       break
 
     with client_socket:
+      with _active_client_lock:
+        _active_client_sockets.add(client_socket)
+
       if _connection_prompt_callback is not None:
         try:
           approved = bool(_connection_prompt_callback(client_address))
@@ -98,6 +103,9 @@ def _run_server(server_socket, host, port):
           "receiver_server_logger",
         )
 
+    with _active_client_lock:
+      _active_client_sockets.discard(client_socket)
+
   try:
     server_socket.close()
   except OSError:
@@ -137,6 +145,21 @@ def stop_server():
     return
 
   is_server_running = False
+
+  with _active_client_lock:
+    active_clients = list(_active_client_sockets)
+    _active_client_sockets.clear()
+
+  for client_socket in active_clients:
+    try:
+      client_socket.shutdown(socket.SHUT_RDWR)
+    except OSError:
+      pass
+
+    try:
+      client_socket.close()
+    except OSError:
+      pass
 
   if _server_socket is not None:
     try:
