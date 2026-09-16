@@ -262,7 +262,7 @@ def receiver_screen(root: customtkinter.CTk):
 
     passphrase_entry = customtkinter.CTkEntry(
         card_sec,
-        placeholder_text="Passphrase (optional)",
+        placeholder_text="Passphrase",
         show="•",
         font=customtkinter.CTkFont(family="DejaVu Sans Mono", size=12),
         fg_color=COLOR_INPUT_BG,
