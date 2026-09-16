@@ -3,6 +3,7 @@ import utils.gpg
 import utils.points
 import sympy as sp
 from logger import log
+import server.client as client
 
 x = sp.Symbol('x')
 
@@ -55,7 +56,7 @@ def encryptMessage(message, gpg_key_path, salt_equation_type):
             sym_expression = salt_equation + calculus_wrapper
             latex_repr = sp.latex(sym_expression)
 
-            log("Encryption process completed successfully.", "encryption_logger", text_color="#677D6A")
+            # log("Encryption process completed successfully.", "encryption_logger", text_color="#677D6A")
 
             payload = {
                 "encrypted_data": encrypted_data,
@@ -63,6 +64,13 @@ def encryptMessage(message, gpg_key_path, salt_equation_type):
                 "latex": latex_repr,
                 "sympy_expr": sym_expression
             }
+
+            try:
+                client.send_payload(str(payload).encode('utf-8'))
+                log("Payload sent to receiver successfully.", "encryption_logger", text_color="#677D6A")
+            except Exception as e:
+                log(f"Error sending payload", "encryption_logger", text_color="#f54842")
+                print(f"Error sending payload: {str(e)}")
 
             return payload
     except Exception as e:
