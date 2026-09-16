@@ -18,3 +18,4 @@ build/
 
 # uv cache directory
 .uv/
+private_key.asc

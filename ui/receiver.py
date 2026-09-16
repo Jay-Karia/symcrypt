@@ -4,6 +4,7 @@ import socket
 import threading
 from logger import create_log_target, log
 from server.main import register_connection_prompt, register_payload_received_callback, start_server, stop_server
+from utils import decrypt
 
 COLOR_ECLIPSE = "#0d1818"
 COLOR_CARD_BG = "#152422"
@@ -337,6 +338,11 @@ def receiver_screen(root: customtkinter.CTk):
         text_color=COLOR_ECLIPSE,
         height=36,
         corner_radius=0,
+        command=lambda: decrypt.decrypt_payload(
+            raw_payload_box.get("1.0", "end-1c"),
+            priv_key_path_entry.get(),
+            passphrase_entry.get()
+        ),
     )
     decrypt_btn.pack(side="bottom", fill="x")
 
