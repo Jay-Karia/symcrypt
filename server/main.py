@@ -80,12 +80,19 @@ def _run_server(server_socket, host, port):
         "receiver_server_logger",
       )
 
-      try:
-        payload = client_socket.recv(4096)
-      except OSError:
-        continue
+      while is_server_running:
+        try:
+          payload = client_socket.recv(4096)
+        except OSError:
+          break
 
-      if payload:
+        if not payload:
+          log(
+            "Sender disconnected from receiver.",
+            "receiver_server_logger",
+          )
+          break
+
         log(
           f"Received {len(payload)} bytes from sender.",
           "receiver_server_logger",
@@ -120,3 +127,23 @@ def start_server(host="0.0.0.0", port=5000):
     daemon=True,
   )
   _server_thread.start()
+
+
+def stop_server():
+  global is_server_running, _server_socket, _server_thread
+
+  if not is_server_running:
+    log("Server is not running.", "receiver_server_logger")
+    return
+
+  is_server_running = False
+
+  if _server_socket is not None:
+    try:
+      _server_socket.close()
+    except OSError:
+      pass
+    _server_socket = None
+
+  _server_thread = None
+  log("Server stopped.", "receiver_server_logger")

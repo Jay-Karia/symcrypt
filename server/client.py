@@ -73,15 +73,6 @@ def connect_to_server(host: str, port: int = 5000):
 
 
 def send_payload(payload: bytes) -> bool:
-    """
-    Send encrypted payload to the connected receiver.
-
-    Args:
-        payload: Raw bytes to send
-
-    Returns:
-        True if sent, False otherwise.
-    """
     global _client_socket, _is_connected
 
     if not _is_connected or _client_socket is None:
@@ -103,10 +94,13 @@ def send_payload(payload: bytes) -> bool:
         _is_connected = False
         return False
 
-
 def disconnect():
     """Disconnect from the receiver's server."""
     global _client_socket, _is_connected
+
+    if not _is_connected:
+        log("Not connected to receiver.", "server_status_logger")
+        return
 
     if _client_socket is not None:
         try:

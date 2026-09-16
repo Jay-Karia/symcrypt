@@ -3,7 +3,7 @@ from tkinter import filedialog, messagebox, Canvas, Scrollbar
 import sympy as sp
 import utils.encrypt
 from logger import create_log_target, log
-from server.client import connect_to_server
+from server.client import connect_to_server, disconnect
 
 import matplotlib
 matplotlib.use("TkAgg")
@@ -285,6 +285,27 @@ def sender_screen(root: customtkinter.CTk):
     )
     serverAddressEntry.pack(side="left", fill="x", expand=True, padx=(0, 8))
 
+    disconnectButton = customtkinter.CTkButton(
+        connectionFrame,
+        text="Disconnect",
+        width=95,
+        height=34,
+        corner_radius=0,
+        fg_color=COLOR_BORDER,
+        hover_color=COLOR_MATCHA_BREW,
+        text_color=COLOR_ALMOND,
+        font=customtkinter.CTkFont(family="Inter", size=12, weight="bold"),
+        command=lambda: (
+            disconnect()
+            if messagebox.askyesno(
+                "Disconnect from Receiver",
+                "Do you want to disconnect from the receiver's server?",
+            )
+            else None
+        ),
+    )
+    disconnectButton.pack(side="right", padx=(0, 8))
+
     connectButton = customtkinter.CTkButton(
         connectionFrame,
         text="Connect",
@@ -297,7 +318,7 @@ def sender_screen(root: customtkinter.CTk):
         font=customtkinter.CTkFont(family="Inter", size=12, weight="bold"),
         command=lambda: connect_to_server(serverAddressEntry.get()),
     )
-    connectButton.pack(side="right")
+    connectButton.pack(side="right", padx=(0, 12))
 
     serverStatusBox = create_log_target(
         card_conn, "server_status_logger", height=42, fg_color=COLOR_INPUT_BG

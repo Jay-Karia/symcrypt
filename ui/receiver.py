@@ -3,7 +3,7 @@ from tkinter import filedialog, messagebox
 import socket
 import threading
 from logger import create_log_target, log
-from server.main import register_connection_prompt, start_server
+from server.main import register_connection_prompt, start_server, stop_server
 
 COLOR_ECLIPSE = "#0d1818"
 COLOR_CARD_BG = "#152422"
@@ -134,6 +134,27 @@ def receiver_screen(root: customtkinter.CTk):
         command=lambda: start_server()
     )
     server_toggle_btn.pack(side="left")
+
+    end_server_btn = customtkinter.CTkButton(
+        server_inner,
+        text="End Server",
+        width=110,
+        height=32,
+        corner_radius=0,
+        fg_color=COLOR_BORDER,
+        hover_color=COLOR_MATCHA_BREW,
+        text_color=COLOR_ALMOND,
+        font=customtkinter.CTkFont(family="Inter", size=12, weight="bold"),
+        command=lambda: (
+            stop_server()
+            if messagebox.askyesno(
+                "Stop Receiver Server",
+                "Do you want to stop the receiver server?",
+            )
+            else None
+        ),
+    )
+    end_server_btn.pack(side="left", padx=(8, 0))
 
     rx_server_log = create_log_target(
         server_inner, "receiver_server_logger", height=42, fg_color=COLOR_INPUT_BG
