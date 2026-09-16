@@ -60,3 +60,27 @@ def encrypt_secret_key(secret_key, gpg_key):
         return None
 
     return encryption_status.data.decode("utf-8")
+
+def decrypt_secret_key(encrypted_secret_key, gpg_key_path, passphrase):
+    gpg = GPG()
+    # Import the GPG key
+    with open(gpg_key_path, 'r') as key_file:
+        gpg_key = key_file.read()
+    import_result = gpg.import_keys(gpg_key)
+    if not import_result.fingerprints:
+        log("Failed to import key.", "receiver_status_logger", text_color="#f54842")
+        return None
+
+    # Decrypt
+    decryption_status = gpg.decrypt(encrypted_secret_key, passphrase=passphrase)
+
+    if not decryption_status.ok:
+        log(f"Decryption failed: {decryption_status.status}", "receiver_status_logger", text_color="#f54842")
+        return None
+
+    try:
+        decrypted_secret_key = json.loads(decryption_status.data.decode("utf-8"))
+        return decrypted_secret_key
+    except json.JSONDecodeError as e:
+        log(f"Failed to decode decrypted secret key: {e}", "receiver_status_logger", text_color="#f54842")
+        return None

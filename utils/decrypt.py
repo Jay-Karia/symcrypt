@@ -1,7 +1,8 @@
 import ast
 import json
 import re
-
+from utils import gpg
+import sympy as sp
 from logger import log
 
 
@@ -58,10 +59,33 @@ def decrypt_payload(payload: str, gpg_key_path: str, passphrase: str) -> str:
         secret_key = parsed_payload.get("secret_key", parsed_payload.get("encrypted_data"))
         equation = parsed_payload.get("equation")
 
-        print("Secret key:", secret_key)
-        print("Equation:", equation)
-        print("Private Key Path:", gpg_key_path)
-        print("Passphrase:", passphrase)
+        # Decrypt using private GPG key
+        secret_key = gpg.decrypt_secret_key(secret_key, gpg_key_path, passphrase)
+        if not secret_key:
+            raise ValueError("Decrypted secret key is empty or invalid.")
+        if not equation:
+            raise ValueError("Equation field is missing in payload.")
+
+        # Get the ASCII values of the message
+        x = sp.Symbol("x")
+        expression = sp.sympify(equation).doit()
+        ascii_values = []
+        for key in secret_key:
+            evaluated_val = expression.subs(x, key).doit()
+            numeric_expr = sp.N(evaluated_val)
+
+            if hasattr(numeric_expr, "is_real") and numeric_expr.is_real is False:
+                raise ValueError(f"Non-real value encountered for key {key}: {numeric_expr}")
+
+            numeric_result = float(numeric_expr)
+            integer_result = int(round(numeric_result))
+            ascii_values.append(integer_result)
+
+        # Convert ASCII values back to characters
+        decrypted_message = ''.join(chr(value) for value in ascii_values)
+
+        log(decrypted_message, "decrypted_message_logger", text_color="#677D6A")
+        log("Successfully decrypted the payload.", "receiver_status_logger", text_color="#677D6A")
 
         return str(equation or "")
     except Exception as exc:
