@@ -1,8 +1,9 @@
 import customtkinter
 from tkinter import filedialog, messagebox
 import socket
+import threading
 from logger import create_log_target, log
-from server.main import start_server
+from server.main import register_connection_prompt, start_server
 
 COLOR_ECLIPSE = "#0d1818"
 COLOR_CARD_BG = "#152422"
@@ -138,6 +139,23 @@ def receiver_screen(root: customtkinter.CTk):
         server_inner, "receiver_server_logger", height=42, fg_color=COLOR_INPUT_BG
     )
     rx_server_log.pack(side="right", fill="x", expand=True, padx=(16, 0))
+
+    def confirm_incoming_connection(client_address):
+        approval_event = threading.Event()
+        approval_result = {"value": False}
+
+        def show_prompt():
+            approval_result["value"] = messagebox.askyesno(
+                "Incoming Connection",
+                f"Someone is trying to connect from {client_address[0]}:{client_address[1]}. Allow it?",
+            )
+            approval_event.set()
+
+        root.after(0, show_prompt)
+        approval_event.wait()
+        return approval_result["value"]
+
+    register_connection_prompt(confirm_incoming_connection)
 
     # --- 2. MAIN SPLIT VIEW ---
     workbench = customtkinter.CTkFrame(dashboard, fg_color="transparent")

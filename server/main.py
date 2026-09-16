@@ -6,6 +6,15 @@ from logger import log
 is_server_running = False
 _server_socket = None
 _server_thread = None
+_connection_prompt_callback = None
+
+APPROVAL_OK = b"APPROVED"
+APPROVAL_REJECTED = b"REJECTED"
+
+
+def register_connection_prompt(callback):
+  global _connection_prompt_callback
+  _connection_prompt_callback = callback
 
 
 def create_server(host="0.0.0.0", port=5000):
@@ -31,8 +40,43 @@ def _run_server(server_socket, host, port):
       break
 
     with client_socket:
+      if _connection_prompt_callback is not None:
+        try:
+          approved = bool(_connection_prompt_callback(client_address))
+        except Exception as exc:
+          log(
+            f"Connection approval prompt failed: {exc}",
+            "receiver_server_logger",
+          )
+          approved = False
+
+        if not approved:
+          log(
+            "Incoming connection rejected by receiver.",
+            "receiver_server_logger",
+          )
+          try:
+            client_socket.sendall(APPROVAL_REJECTED)
+          except OSError:
+            pass
+          continue
+
       log(
         f"Sender connected from {client_address[0]}:{client_address[1]}.",
+        "receiver_server_logger",
+      )
+
+      try:
+        client_socket.sendall(APPROVAL_OK)
+      except OSError:
+        log(
+          "Could not send approval response to sender.",
+          "receiver_server_logger",
+        )
+        continue
+
+      log(
+        "Incoming connection approved by receiver.",
         "receiver_server_logger",
       )
 

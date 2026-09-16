@@ -1,13 +1,17 @@
 """Client for connecting to and sending payloads to the receiver's TCP server."""
 
 import socket
-import threading
+from tkinter import messagebox
+
 from logger import log
 
 
 _client_socket = None
 _is_connected = False
-_connection_thread = None
+
+_APPROVAL_OK = b"APPROVED"
+_APPROVAL_REJECTED = b"REJECTED"
+_APPROVAL_TIMEOUT_SECONDS = 30
 
 
 def connect_to_server(host: str, port: int = 5000):
@@ -22,6 +26,13 @@ def connect_to_server(host: str, port: int = 5000):
         True if connected, False otherwise.
     """
     global _client_socket, _is_connected
+
+    if not messagebox.askyesno(
+        "Connect to Receiver",
+        f"A connection request will be sent to {host}. Continue?",
+    ):
+        log("Connection cancelled by sender.", "server_status_logger")
+        return False
 
     if _is_connected:
         log("Already connected to receiver.", "server_status_logger")
@@ -39,6 +50,14 @@ def connect_to_server(host: str, port: int = 5000):
     try:
         _client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         _client_socket.connect((host, port))
+        _client_socket.settimeout(_APPROVAL_TIMEOUT_SECONDS)
+
+        approval = _client_socket.recv(len(_APPROVAL_OK))
+        if approval == _APPROVAL_REJECTED:
+            raise socket.error("Connection was rejected by receiver.")
+        if approval != _APPROVAL_OK:
+            raise socket.error("Connection was not approved by receiver.")
+
         _is_connected = True
         log(
             f"Connected to receiver at {host}:{port}",
@@ -47,7 +66,7 @@ def connect_to_server(host: str, port: int = 5000):
         return True
     except socket.error as exc:
         log(
-            f"Failed to connect to {host}:{port}: {exc}",
+            f"Failed to connect to host",
             "server_status_logger",
         )
         return False
