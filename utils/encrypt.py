@@ -104,7 +104,7 @@ def encryptMessage(message, gpg_key_path, salt_equation_type):
         return None
 
 
-def encrypt_file(file_path: str):
+def encrypt_file(file_path: str, salt_equation_type: str = "Sine"):
     try:
         if not file_path:
             return None
@@ -119,9 +119,39 @@ def encrypt_file(file_path: str):
             return None
 
         chunks = chunk_bytes(bytes_data, DEFAULT_CHUNK_SIZE)
-        chunks_array = [list(c) for c in chunks]
+        flat_secret_key = generate_secret_key(len(bytes_data))
+        secret_key = [
+            flat_secret_key[index * DEFAULT_CHUNK_SIZE:index * DEFAULT_CHUNK_SIZE + len(chunk)]
+            for index, chunk in enumerate(chunks)
+        ]
+        equations = []
+        print(f"Secret file key: {secret_key}")
 
-        print(chunks_array)
+        for chunk_index, chunk in enumerate(chunks):
+            key_chunk = secret_key[chunk_index]
+            exact_key_chunk = [sp.Rational(str(key)) for key in key_chunk]
+            points = utils.points.generate_points(exact_key_chunk, list(chunk))
+            base_polynomial = sp.interpolate(points, x)
+            integral = sp.integrate(base_polynomial, x)
+            calculus_wrapper = sp.Derivative(integral, x)
+
+            base_salt_equation = generate_base_salt_equation(exact_key_chunk)
+            if salt_equation_type == "Sine":
+                salt_equation = sp.sin(base_salt_equation)
+            elif salt_equation_type == "Cosine":
+                salt_equation = sp.cos(base_salt_equation) - 1
+            elif salt_equation_type == "Tan":
+                salt_equation = sp.tan(base_salt_equation)
+            elif salt_equation_type == "Square Root":
+                salt_equation = sp.sqrt(base_salt_equation)
+            elif salt_equation_type == "Log":
+                salt_equation = sp.log(base_salt_equation + 1)
+            else:
+                salt_equation = base_salt_equation
+
+            equation = salt_equation + calculus_wrapper
+            equations.append(str(equation))
+            print(equation)
 
         return
     except Exception as exc:

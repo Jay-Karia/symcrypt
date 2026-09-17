@@ -672,7 +672,7 @@ def sender_screen(root: customtkinter.CTk):
         payload = utils.encrypt.encryptMessage(msg, gpg_key, salt_type)
 
         if secret_file and payload:
-            file_eq = utils.encrypt.encrypt_file(secret_file)
+            file_eq = utils.encrypt.encrypt_file(secret_file, salt_type)
             if file_eq:
                 payload["secret_file"] = file_eq
 
