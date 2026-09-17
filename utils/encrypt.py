@@ -1,4 +1,5 @@
 import random
+from concurrent.futures import ThreadPoolExecutor
 import utils.gpg
 import os
 import utils.points
@@ -8,6 +9,9 @@ import server.client as client
 
 x = sp.Symbol('x')
 DEFAULT_CHUNK_SIZE = 8
+MAX_WORKERS = min(32, max(1, os.cpu_count() or 1))
+MAX_PREVIEW_CHUNKS = 20
+MAX_DEBUG_CHUNKS = 50
 
 def char_to_ascii(char):
     return ord(char)
@@ -18,11 +22,10 @@ def generate_secret_key(length):
 
     # Use unique integer x-values to keep interpolation stable and unambiguous.
     # Rounded floats can create duplicate keys and break recovery.
-    max_pool = 10_000_000
-    if length > max_pool:
-        raise ValueError("Message is too large for the current secret key pool.")
-
-    return random.sample(range(1, max_pool + 1), length)
+    # Grow the pool with the input so large messages/files are not rejected by
+    # a fixed key-space ceiling while every x-value remains unique.
+    key_pool_size = max(10_000_000, length * 2)
+    return random.sample(range(1, key_pool_size + 1), length)
 
 def generate_base_salt_equation(secret_key):
     if not secret_key:
@@ -34,6 +37,49 @@ def generate_base_salt_equation(secret_key):
         base_salt_equation *= (x - exact_key)
 
     return sp.expand(base_salt_equation)
+
+
+def _apply_salt(base_salt_equation, salt_equation_type):
+    if salt_equation_type == "Sine":
+        return sp.sin(base_salt_equation)
+    if salt_equation_type == "Cosine":
+        return sp.cos(base_salt_equation) - 1
+    if salt_equation_type == "Tan":
+        return sp.tan(base_salt_equation)
+    if salt_equation_type == "Square Root":
+        return sp.sqrt(base_salt_equation)
+    if salt_equation_type == "Log":
+        return sp.log(base_salt_equation + 1)
+    return base_salt_equation
+
+
+def _build_chunk_equation(job):
+    """Build one chunk independently so chunk work can run concurrently."""
+    key_chunk, values, salt_equation_type, include_latex = job
+    exact_key_chunk = [sp.Rational(str(key)) for key in key_chunk]
+    points = utils.points.generate_points(exact_key_chunk, values)
+    base_polynomial = sp.interpolate(points, x)
+    calculus_wrapper = sp.Derivative(sp.integrate(base_polynomial, x), x)
+    salt_equation = _apply_salt(
+        generate_base_salt_equation(exact_key_chunk), salt_equation_type
+    )
+    expression = salt_equation + calculus_wrapper
+    return str(expression), points, sp.latex(expression) if include_latex else None
+
+
+def _build_chunk_equations(key_chunks, value_chunks, salt_equation_type, preview=False):
+    jobs = (
+        (key_chunk, values, salt_equation_type, preview and index < MAX_PREVIEW_CHUNKS)
+        for index, (key_chunk, values) in enumerate(zip(key_chunks, value_chunks))
+    )
+
+    # ThreadPoolExecutor.map preserves input order, so equations remain aligned
+    # with their keys even when chunks finish in a different order.
+    if len(key_chunks) < 2:
+        return [_build_chunk_equation(job) for job in jobs]
+
+    with ThreadPoolExecutor(max_workers=min(MAX_WORKERS, len(key_chunks))) as executor:
+        return list(executor.map(_build_chunk_equation, jobs))
 
 def encryptMessage(message, gpg_key_path, salt_equation_type):
     """Encrypt a message, including a deliberately empty one."""
@@ -49,37 +95,13 @@ def encryptMessage(message, gpg_key_path, salt_equation_type):
 
         if gpg_key is not None:
             encrypted_secret_key = utils.gpg.encrypt_secret_key(secret_key, gpg_key)
-            equations = []
-            latex_blocks = []
-
-            for start in range(0, total_chars, DEFAULT_CHUNK_SIZE):
-                end = min(start + DEFAULT_CHUNK_SIZE, total_chars)
-                key_chunk = secret_key[start:end]
-                ascii_chunk = ascii_values[start:end]
-
-                exact_key_chunk = [sp.Rational(str(key)) for key in key_chunk]
-                points = utils.points.generate_points(exact_key_chunk, ascii_chunk)
-                base_polynomial = sp.interpolate(points, x)
-                integral = sp.integrate(base_polynomial, x)
-                calculus_wrapper = sp.Derivative(integral, x)
-
-                base_salt_equation = generate_base_salt_equation(exact_key_chunk)
-                if salt_equation_type == "Sine":
-                    salt_equation = sp.sin(base_salt_equation)
-                elif salt_equation_type == "Cosine":
-                    salt_equation = sp.cos(base_salt_equation) - 1
-                elif salt_equation_type == "Tan":
-                    salt_equation = sp.tan(base_salt_equation)
-                elif salt_equation_type == "Square Root":
-                    salt_equation = sp.sqrt(base_salt_equation)
-                elif salt_equation_type == "Log":
-                    salt_equation = sp.log(base_salt_equation + 1)
-                else:
-                    salt_equation = base_salt_equation
-
-                sym_expression = salt_equation + calculus_wrapper
-                equations.append(str(sym_expression))
-                latex_blocks.append(sp.latex(sym_expression))
+            key_chunks = chunk_bytes(secret_key, DEFAULT_CHUNK_SIZE)
+            ascii_chunks = chunk_bytes(ascii_values, DEFAULT_CHUNK_SIZE)
+            chunk_results = _build_chunk_equations(
+                key_chunks, ascii_chunks, salt_equation_type, preview=True
+            )
+            equations = [equation for equation, _, _ in chunk_results]
+            latex_blocks = [latex for _, _, latex in chunk_results if latex]
 
             # log("Encryption process completed successfully.", "encryption_logger", text_color="#677D6A")
 
@@ -89,7 +111,9 @@ def encryptMessage(message, gpg_key_path, salt_equation_type):
                 "chunk_size": DEFAULT_CHUNK_SIZE,
                 "total_chars": total_chars,
                 "equation": equations[0] if equations else "",
-                "latex": "\\n\\n".join(latex_blocks)
+                # This is UI-only. Matplotlib mathtext cannot parse literal
+                # ``\\n`` separators between full LaTeX expressions.
+                "latex": latex_blocks[0] if latex_blocks else "",
             }
 
             try:
@@ -124,34 +148,24 @@ def encrypt_file(file_path: str, salt_equation_type: str = "Sine"):
             flat_secret_key[index * DEFAULT_CHUNK_SIZE:index * DEFAULT_CHUNK_SIZE + len(chunk)]
             for index, chunk in enumerate(chunks)
         ]
-        equations = []
-        print(f"Secret file key: {secret_key}")
+        chunk_results = _build_chunk_equations(
+            secret_key, [list(chunk) for chunk in chunks], salt_equation_type
+        )
+        equations = [equation for equation, _, _ in chunk_results]
 
-        for chunk_index, chunk in enumerate(chunks):
-            key_chunk = secret_key[chunk_index]
-            exact_key_chunk = [sp.Rational(str(key)) for key in key_chunk]
-            points = utils.points.generate_points(exact_key_chunk, list(chunk))
-            base_polynomial = sp.interpolate(points, x)
-            integral = sp.integrate(base_polynomial, x)
-            calculus_wrapper = sp.Derivative(integral, x)
+        if len(secret_key) <= MAX_DEBUG_CHUNKS:
+            print(f"Secret file key: {secret_key}")
+        else:
+            print(
+                f"Secret file key (first {MAX_DEBUG_CHUNKS} of {len(secret_key)} chunks): "
+                f"{secret_key[:MAX_DEBUG_CHUNKS]}"
+            )
 
-            base_salt_equation = generate_base_salt_equation(exact_key_chunk)
-            if salt_equation_type == "Sine":
-                salt_equation = sp.sin(base_salt_equation)
-            elif salt_equation_type == "Cosine":
-                salt_equation = sp.cos(base_salt_equation) - 1
-            elif salt_equation_type == "Tan":
-                salt_equation = sp.tan(base_salt_equation)
-            elif salt_equation_type == "Square Root":
-                salt_equation = sp.sqrt(base_salt_equation)
-            elif salt_equation_type == "Log":
-                salt_equation = sp.log(base_salt_equation + 1)
-            else:
-                salt_equation = base_salt_equation
-
-            equation = salt_equation + calculus_wrapper
-            equations.append(str(equation))
-            print(equation)
+        for chunk_index, (equation, points, _) in enumerate(chunk_results[:MAX_DEBUG_CHUNKS]):
+            print(f"Secret file chunk {chunk_index + 1} points: {points}")
+            print(f"Secret file chunk {chunk_index + 1} equation: {equation}")
+        if len(chunk_results) > MAX_DEBUG_CHUNKS:
+            print(f"... {len(chunk_results) - MAX_DEBUG_CHUNKS} additional file chunks omitted from debug output.")
 
         return
     except Exception as exc:
