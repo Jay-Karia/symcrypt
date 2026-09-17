@@ -60,11 +60,22 @@ def decrypt_payload(payload: str, gpg_key_path: str, passphrase: str) -> str:
         equation = parsed_payload.get("equation")
         equations = parsed_payload.get("equations")
         chunk_size = int(parsed_payload.get("chunk_size", 0) or 0)
+        total_chars = int(parsed_payload.get("total_chars", 0) or 0)
 
         # Decrypt using private GPG key
         secret_key = gpg.decrypt_secret_key(encrypted_secret_key, gpg_key_path, passphrase)
-        if not secret_key:
+        if secret_key is None:
             raise ValueError("Decrypted secret key is empty or invalid.")
+
+        # An empty message is a valid sender payload. It has an empty key and no
+        # equations, so there is nothing to evaluate during decryption.
+        if not secret_key:
+            if total_chars != 0 or equations or equation:
+                raise ValueError("Empty secret key does not match the payload data.")
+            log("", "decrypted_message_logger", text_color="#677D6A")
+            log("Successfully decrypted the payload.", "receiver_status_logger", text_color="#677D6A")
+            return ""
+
         if not equations and not equation:
             raise ValueError("Equation field is missing in payload.")
 

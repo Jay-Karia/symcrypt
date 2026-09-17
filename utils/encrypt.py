@@ -36,6 +36,10 @@ def generate_base_salt_equation(secret_key):
     return sp.expand(base_salt_equation)
 
 def encryptMessage(message, gpg_key_path, salt_equation_type):
+    """Encrypt a message, including a deliberately empty one."""
+    if message is None:
+        message = ""
+
     try:
         ascii_values = [char_to_ascii(char) for char in message]
         total_chars = len(ascii_values)

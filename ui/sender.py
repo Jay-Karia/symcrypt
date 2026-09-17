@@ -139,7 +139,9 @@ def render_latex(fig, ax, canvas, scroll_canvas, scroll_x, scroll_y, latex_expr:
 
     clean_str = latex_expr.strip()
 
-    if not (clean_str.startswith("$") and clean_str.endswith("$")):
+    if not clean_str:
+        formatted_latex = r"$\mathrm{No\ message\ entered}$"
+    elif not (clean_str.startswith("$") and clean_str.endswith("$")):
         formatted_latex = f"${clean_str}$"
     else:
         formatted_latex = clean_str
@@ -463,7 +465,7 @@ def sender_screen(root: customtkinter.CTk):
 
     secretMessageLabel = customtkinter.CTkLabel(
         msg_header,
-        text="Secret Message",
+        text="Secret Message (optional)",
         font=customtkinter.CTkFont(family="Inter", size=14, weight="bold"),
         text_color=COLOR_ALMOND,
     )
