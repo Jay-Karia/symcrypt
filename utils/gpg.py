@@ -1,5 +1,6 @@
 from gnupg import GPG
 import json
+import tempfile
 from logger import log, clear_log
 
 def validate_gpg_key(gpg_key):
@@ -62,25 +63,42 @@ def encrypt_secret_key(secret_key, gpg_key):
     return encryption_status.data.decode("utf-8")
 
 def decrypt_secret_key(encrypted_secret_key, gpg_key_path, passphrase):
-    gpg = GPG()
-    # Import the GPG key
-    with open(gpg_key_path, 'r') as key_file:
-        gpg_key = key_file.read()
-    import_result = gpg.import_keys(gpg_key)
-    if not import_result.fingerprints:
-        log("Failed to import key.", "receiver_status_logger", text_color="#f54842")
-        return None
-
-    # Decrypt
-    decryption_status = gpg.decrypt(encrypted_secret_key, passphrase=passphrase)
-
-    if not decryption_status.ok:
-        log(f"Decryption failed: {decryption_status.status}", "receiver_status_logger", text_color="#f54842")
+    if not passphrase.strip():
+        log("Passphrase is required to decrypt the private key.", "receiver_status_logger", text_color="#f54842")
         return None
 
     try:
-        decrypted_secret_key = json.loads(decryption_status.data.decode("utf-8"))
-        return decrypted_secret_key
-    except json.JSONDecodeError as e:
-        log(f"Failed to decode decrypted secret key: {e}", "receiver_status_logger", text_color="#f54842")
+        with open(gpg_key_path, 'r') as key_file:
+            gpg_key = key_file.read()
+
+        if "BEGIN PGP PRIVATE KEY BLOCK" not in gpg_key and "BEGIN PGP SECRET KEY BLOCK" not in gpg_key:
+            log(
+                f"Error: File '{gpg_key_path}' does not look like a private GPG key.",
+                "receiver_status_logger",
+                text_color="#f54842",
+            )
+            return None
+
+        with tempfile.TemporaryDirectory(prefix="symcrypt-gpg-") as gnupg_home:
+            gpg = GPG(gnupghome=gnupg_home, options=["--pinentry-mode", "loopback"])
+
+            import_result = gpg.import_keys(gpg_key)
+            if not import_result.fingerprints:
+                log("Failed to import key.", "receiver_status_logger", text_color="#f54842")
+                return None
+
+            decryption_status = gpg.decrypt(encrypted_secret_key, passphrase=passphrase)
+
+            if not decryption_status.ok:
+                log(f"Decryption failed: {decryption_status.status}", "receiver_status_logger", text_color="#f54842")
+                return None
+
+            try:
+                decrypted_secret_key = json.loads(decryption_status.data.decode("utf-8"))
+                return decrypted_secret_key
+            except json.JSONDecodeError as e:
+                log(f"Failed to decode decrypted secret key: {e}", "receiver_status_logger", text_color="#f54842")
+                return None
+    except FileNotFoundError:
+        log(f"Error: GPG key file '{gpg_key_path}' not found.", "receiver_status_logger", text_color="#f54842")
         return None

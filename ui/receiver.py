@@ -338,12 +338,24 @@ def receiver_screen(root: customtkinter.CTk):
         text_color=COLOR_ECLIPSE,
         height=36,
         corner_radius=0,
-        command=lambda: decrypt.decrypt_payload(
-            raw_payload_box.get("1.0", "end-1c"),
-            priv_key_path_entry.get(),
-            passphrase_entry.get()
-        ),
     )
+
+    def decrypt_current_payload():
+        payload = raw_payload_box.get("1.0", "end-1c")
+        key_path = priv_key_path_entry.get().strip()
+        passphrase = passphrase_entry.get()
+
+        if not key_path:
+            messagebox.showwarning("Missing Private Key", "Please select your private GPG key file first.")
+            return
+
+        if not passphrase.strip():
+            messagebox.showwarning("Missing Passphrase", "Please enter the passphrase for the private GPG key.")
+            return
+
+        decrypt.decrypt_payload(payload, key_path, passphrase)
+
+    decrypt_btn.configure(command=decrypt_current_payload)
     decrypt_btn.pack(side="bottom", fill="x")
 
     card_result = customtkinter.CTkFrame(
