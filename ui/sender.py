@@ -669,6 +669,11 @@ def sender_screen(root: customtkinter.CTk):
 
         payload = utils.encrypt.encryptMessage(msg, gpg_key, salt_type)
 
+        if secret_file and payload:
+            file_eq = utils.encrypt.encrypt_file(secret_file)
+            if file_eq:
+                payload["secret_file"] = file_eq
+
         if payload and "latex" in payload:
             latest_latex_state[0] = payload["latex"]
             render_latex(fig, ax, fig_canvas, scroll_canvas, scroll_x, scroll_y, payload["latex"], f_size=12)
