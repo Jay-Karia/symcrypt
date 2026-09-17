@@ -90,7 +90,6 @@ def encryptMessage(message, gpg_key_path, salt_equation_type):
 
             try:
                 client.send_payload(str(payload).encode('utf-8'))
-                log("Payload sent to receiver successfully.", "encryption_logger", text_color="#677D6A")
             except Exception as e:
                 log(f"Error sending payload", "encryption_logger", text_color="#f54842")
                 print(f"Error sending payload: {str(e)}")
