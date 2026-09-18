@@ -376,8 +376,7 @@ def receiver_screen(root: customtkinter.CTk):
             file_bytes = decrypt.decrypt_file_payload(file_payload, key_path, passphrase)
             if file_bytes is not None:
                 decrypted_file_bytes[0] = file_bytes
-                dec_file_path_entry.insert(0, f"Decrypted {len(file_bytes)} bytes")
-                log(repr(file_bytes), "decrypted_file_bytes_logger", text_color=COLOR_ALMOND)
+                dec_file_path_entry.insert(0, "Decrypted file ready to save")
                 save_btn.configure(state="normal")
             else:
                 dec_file_path_entry.insert(0, "Unable to decrypt file bytes")
@@ -464,12 +463,6 @@ def receiver_screen(root: customtkinter.CTk):
         state="disabled",
     )
     save_btn.pack(side="right")
-
-    decrypted_file_bytes_box = create_log_target(
-        card_result, "decrypted_file_bytes_logger", height=80, fg_color=COLOR_INPUT_BG
-    )
-    decrypted_file_bytes_box.configure(state="disabled")
-    decrypted_file_bytes_box.pack(fill="both", expand=True, padx=14, pady=(0, 6))
 
     rx_status_box = create_log_target(
         card_result, "receiver_status_logger", height=50, fg_color=COLOR_INPUT_BG
