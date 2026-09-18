@@ -47,7 +47,15 @@ def _parse_payload(payload):
 
     raise ValueError("Payload is not a dictionary-like object.")
 
-def decrypt_payload(payload: str, gpg_key_path: str, passphrase: str) -> str:
+
+def payload_includes_file(payload) -> bool:
+    parsed_payload = _parse_payload(payload)
+    return (
+        "encrypted_file" in parsed_payload
+        or "secret_file" in parsed_payload
+    )
+
+def decrypt_payload(payload: str, gpg_key_path: str, passphrase: str) -> str | None:
     log("Starting decryption process...", "receiver_status_logger", text_color="#677D6A")
 
     try:
@@ -138,12 +146,12 @@ def decrypt_payload(payload: str, gpg_key_path: str, passphrase: str) -> str:
         log(decrypted_message, "decrypted_message_logger", text_color="#677D6A")
         log("Successfully decrypted the payload.", "receiver_status_logger", text_color="#677D6A")
 
-        return str(equation or "")
+        return decrypted_message
     except Exception as exc:
         error_message = f"Failed to parse payload: {exc}"
         print(error_message)
         log(error_message, "receiver_status_logger", text_color="#f54842")
-        return ""
+        return None
 
 
 # receiver_status_logger

@@ -1,4 +1,5 @@
 import random
+import json
 from concurrent.futures import ThreadPoolExecutor
 import utils.gpg
 import os
@@ -82,7 +83,7 @@ def _build_chunk_equations(key_chunks, value_chunks, salt_equation_type, preview
         return list(executor.map(_build_chunk_equation, jobs))
 
 def encryptMessage(message, gpg_key_path, salt_equation_type):
-    """Encrypt a message, including a deliberately empty one."""
+    """Build a message payload, including a deliberately empty message."""
     if message is None:
         message = ""
 
@@ -115,12 +116,6 @@ def encryptMessage(message, gpg_key_path, salt_equation_type):
                 # ``\\n`` separators between full LaTeX expressions.
                 "latex": latex_blocks[0] if latex_blocks else "",
             }
-
-            try:
-                client.send_payload(str(payload).encode('utf-8'))
-            except Exception as e:
-                log(f"Error sending payload", "encryption_logger", text_color="#f54842")
-                print(f"Error sending payload: {str(e)}")
 
             return payload
     except Exception as e:
@@ -167,7 +162,15 @@ def encrypt_file(file_path: str, salt_equation_type: str = "Sine"):
         if len(chunk_results) > MAX_DEBUG_CHUNKS:
             print(f"... {len(chunk_results) - MAX_DEBUG_CHUNKS} additional file chunks omitted from debug output.")
 
-        return
+        # File recovery is intentionally not implemented yet.  Preserve the
+        # generated equations in the transport payload so the receiver can
+        # identify that a file was included and reserve a place for it.
+        return {
+            "equations": equations,
+            "chunk_size": DEFAULT_CHUNK_SIZE,
+            "total_bytes": len(bytes_data),
+            "equation": equations[0] if equations else "",
+        }
     except Exception as exc:
         log(f"Failed to build secret file equation: {exc}", "encryption_logger", text_color="#f54842")
         return None
@@ -189,3 +192,13 @@ def chunk_bytes(data: bytes, chunk_size: int = DEFAULT_CHUNK_SIZE):
     if not data:
         return []
     return [data[i:i + chunk_size] for i in range(0, len(data), chunk_size)]
+
+
+def send_payload(payload: dict) -> bool:
+    """Send the complete message/file payload after all optional parts exist."""
+    try:
+        return client.send_payload(json.dumps(payload).encode("utf-8"))
+    except Exception as exc:
+        log("Error sending payload", "encryption_logger", text_color="#f54842")
+        print(f"Error sending payload: {exc}")
+        return False

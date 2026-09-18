@@ -674,7 +674,10 @@ def sender_screen(root: customtkinter.CTk):
         if secret_file and payload:
             file_eq = utils.encrypt.encrypt_file(secret_file, salt_type)
             if file_eq:
-                payload["secret_file"] = file_eq
+                payload["encrypted_file"] = file_eq
+
+        if payload:
+            utils.encrypt.send_payload(payload)
 
         if payload and "latex" in payload:
             latest_latex_state[0] = payload["latex"]

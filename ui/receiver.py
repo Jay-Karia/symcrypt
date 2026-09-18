@@ -353,7 +353,18 @@ def receiver_screen(root: customtkinter.CTk):
             messagebox.showwarning("Missing Passphrase", "Please enter the passphrase for the private GPG key.")
             return
 
-        decrypt.decrypt_payload(payload, key_path, passphrase)
+        decrypted_message = decrypt.decrypt_payload(payload, key_path, passphrase)
+        if decrypted_message is None:
+            return
+
+        has_file_equation = decrypt.payload_includes_file(payload)
+        dec_file_path_entry.configure(state="normal")
+        dec_file_path_entry.delete(0, "end")
+        if has_file_equation:
+            dec_file_path_entry.insert(
+                0, "Encrypted file equation received — file decryption coming soon"
+            )
+        dec_file_path_entry.configure(state="readonly")
 
     decrypt_btn.configure(command=decrypt_current_payload)
     decrypt_btn.pack(side="bottom", fill="x")
