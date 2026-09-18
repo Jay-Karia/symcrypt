@@ -314,7 +314,15 @@ def receiver_screen(root: customtkinter.CTk):
     raw_payload_box.configure(state="disabled")
     raw_payload_box.pack(fill="both", expand=True, padx=14, pady=(0, 10))
 
+    # Mutable state lets the Save File action access the bytes recovered by
+    # the most recent successful decryption.
+    decrypted_file_bytes = [None]
+    save_btn = None
+
     def show_incoming_payload(payload_text: str):
+        decrypted_file_bytes[0] = None
+        if save_btn is not None:
+            save_btn.configure(state="disabled")
         raw_payload_box.configure(state="normal")
         raw_payload_box.delete("1.0", "end")
         raw_payload_box.insert("end", payload_text)
@@ -344,6 +352,8 @@ def receiver_screen(root: customtkinter.CTk):
         payload = raw_payload_box.get("1.0", "end-1c")
         key_path = priv_key_path_entry.get().strip()
         passphrase = passphrase_entry.get()
+        decrypted_file_bytes[0] = None
+        save_btn.configure(state="disabled")
 
         if not key_path:
             messagebox.showwarning("Missing Private Key", "Please select your private GPG key file first.")
@@ -365,10 +375,15 @@ def receiver_screen(root: customtkinter.CTk):
             file_payload = parsed_payload.get("encrypted_file", parsed_payload.get("secret_file"))
             file_bytes = decrypt.decrypt_file_payload(file_payload, key_path, passphrase)
             if file_bytes is not None:
+                decrypted_file_bytes[0] = file_bytes
                 dec_file_path_entry.insert(0, f"Decrypted {len(file_bytes)} bytes")
                 log(repr(file_bytes), "decrypted_file_bytes_logger", text_color=COLOR_ALMOND)
+                save_btn.configure(state="normal")
             else:
                 dec_file_path_entry.insert(0, "Unable to decrypt file bytes")
+                save_btn.configure(state="disabled")
+        else:
+            save_btn.configure(state="disabled")
         dec_file_path_entry.configure(state="readonly")
 
     decrypt_btn.configure(command=decrypt_current_payload)
@@ -419,9 +434,21 @@ def receiver_screen(root: customtkinter.CTk):
     dec_file_path_entry.configure(state="readonly")
 
     def save_decrypted_file():
+        file_bytes = decrypted_file_bytes[0]
+        if file_bytes is None:
+            messagebox.showwarning("No File Available", "Decrypt a file payload before saving it.")
+            return
+
         file_path = filedialog.asksaveasfilename(title="Save Decrypted File")
-        if file_path:
+        if not file_path:
+            return
+
+        try:
+            with open(file_path, "wb") as output_file:
+                output_file.write(file_bytes)
             log(f"Decrypted file saved to: {file_path}", "receiver_status_logger")
+        except OSError as exc:
+            messagebox.showerror("Save Failed", f"Could not save the decrypted file:\n{exc}")
 
     save_btn = customtkinter.CTkButton(
         dec_file_frame,
@@ -434,6 +461,7 @@ def receiver_screen(root: customtkinter.CTk):
         text_color=COLOR_ALMOND,
         font=customtkinter.CTkFont(family="Inter", size=12),
         command=save_decrypted_file,
+        state="disabled",
     )
     save_btn.pack(side="right")
 
