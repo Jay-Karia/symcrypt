@@ -465,7 +465,7 @@ def sender_screen(root: customtkinter.CTk):
 
     secretMessageLabel = customtkinter.CTkLabel(
         msg_header,
-        text="Secret Message (optional)",
+        text="Secret Message",
         font=customtkinter.CTkFont(family="Inter", size=14, weight="bold"),
         text_color=COLOR_ALMOND,
     )
