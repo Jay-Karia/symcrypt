@@ -123,7 +123,7 @@ def encryptMessage(message, gpg_key_path, salt_equation_type):
         return None
 
 
-def encrypt_file(file_path: str, salt_equation_type: str = "Sine"):
+def encrypt_file(file_path: str, gpg_key_path: str, salt_equation_type: str = "Sine"):
     try:
         if not file_path:
             return None
@@ -139,6 +139,14 @@ def encrypt_file(file_path: str, salt_equation_type: str = "Sine"):
 
         chunks = chunk_bytes(bytes_data, DEFAULT_CHUNK_SIZE)
         flat_secret_key = generate_secret_key(len(bytes_data))
+        gpg_key = utils.gpg.read_gpg_file(gpg_key_path)
+        if gpg_key is None:
+            return None
+
+        encrypted_secret_key = utils.gpg.encrypt_secret_key(flat_secret_key, gpg_key)
+        if encrypted_secret_key is None:
+            return None
+
         secret_key = [
             flat_secret_key[index * DEFAULT_CHUNK_SIZE:index * DEFAULT_CHUNK_SIZE + len(chunk)]
             for index, chunk in enumerate(chunks)
@@ -148,24 +156,8 @@ def encrypt_file(file_path: str, salt_equation_type: str = "Sine"):
         )
         equations = [equation for equation, _, _ in chunk_results]
 
-        if len(secret_key) <= MAX_DEBUG_CHUNKS:
-            print(f"Secret file key: {secret_key}")
-        else:
-            print(
-                f"Secret file key (first {MAX_DEBUG_CHUNKS} of {len(secret_key)} chunks): "
-                f"{secret_key[:MAX_DEBUG_CHUNKS]}"
-            )
-
-        for chunk_index, (equation, points, _) in enumerate(chunk_results[:MAX_DEBUG_CHUNKS]):
-            print(f"Secret file chunk {chunk_index + 1} points: {points}")
-            print(f"Secret file chunk {chunk_index + 1} equation: {equation}")
-        if len(chunk_results) > MAX_DEBUG_CHUNKS:
-            print(f"... {len(chunk_results) - MAX_DEBUG_CHUNKS} additional file chunks omitted from debug output.")
-
-        # File recovery is intentionally not implemented yet.  Preserve the
-        # generated equations in the transport payload so the receiver can
-        # identify that a file was included and reserve a place for it.
         return {
+            "encrypted_data": encrypted_secret_key,
             "equations": equations,
             "chunk_size": DEFAULT_CHUNK_SIZE,
             "total_bytes": len(bytes_data),

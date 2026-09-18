@@ -55,6 +55,52 @@ def payload_includes_file(payload) -> bool:
         or "secret_file" in parsed_payload
     )
 
+
+def decrypt_file_payload(file_payload: dict, gpg_key_path: str, passphrase: str) -> bytes | None:
+    """Recover the original file bytes from its encrypted equation payload."""
+    try:
+        if not isinstance(file_payload, dict):
+            raise ValueError("Invalid file payload.")
+
+        encrypted_secret_key = file_payload.get("encrypted_data")
+        equations = file_payload.get("equations")
+        chunk_size = int(file_payload.get("chunk_size", 0) or 0)
+        total_bytes = int(file_payload.get("total_bytes", 0) or 0)
+        if not encrypted_secret_key or not isinstance(equations, list) or chunk_size <= 0:
+            raise ValueError("File payload is missing its encrypted key or equations.")
+
+        secret_key = gpg.decrypt_secret_key(encrypted_secret_key, gpg_key_path, passphrase)
+        if not isinstance(secret_key, list) or len(secret_key) != total_bytes:
+            raise ValueError("Decrypted file key does not match the expected file size.")
+
+        expected_chunks = (total_bytes + chunk_size - 1) // chunk_size
+        if len(equations) != expected_chunks:
+            raise ValueError(
+                f"File chunk mismatch: expected {expected_chunks} equations, got {len(equations)}."
+            )
+
+        x = sp.Symbol("x")
+        recovered_values = []
+        for chunk_index, equation_text in enumerate(equations):
+            start = chunk_index * chunk_size
+            end = min(start + chunk_size, total_bytes)
+            expression = sp.sympify(equation_text).doit()
+            for key in secret_key[start:end]:
+                evaluated = expression.subs(x, sp.Rational(str(key))).doit()
+                value = int(round(float(sp.N(evaluated))))
+                if not 0 <= value <= 255:
+                    raise ValueError(
+                        f"Recovered file byte is out of range at index {len(recovered_values)}."
+                    )
+                recovered_values.append(value)
+
+        return bytes(recovered_values)
+    except Exception as exc:
+        error_message = f"Failed to decrypt file payload: {exc}"
+        print(error_message)
+        log(error_message, "receiver_status_logger", text_color="#f54842")
+        return None
+
 def decrypt_payload(payload: str, gpg_key_path: str, passphrase: str) -> str | None:
     log("Starting decryption process...", "receiver_status_logger", text_color="#677D6A")
 
