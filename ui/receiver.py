@@ -349,41 +349,47 @@ def receiver_screen(root: customtkinter.CTk):
     )
 
     def decrypt_current_payload():
-        payload = raw_payload_box.get("1.0", "end-1c")
-        key_path = priv_key_path_entry.get().strip()
-        passphrase = passphrase_entry.get()
-        decrypted_file_bytes[0] = None
-        save_btn.configure(state="disabled")
+        decrypt_btn.configure(text="Decrypting...", state="disabled")
+        root.update_idletasks()
 
-        if not key_path:
-            messagebox.showwarning("Missing Private Key", "Please select your private GPG key file first.")
-            return
-
-        if not passphrase.strip():
-            messagebox.showwarning("Missing Passphrase", "Please enter the passphrase for the private GPG key.")
-            return
-
-        decrypted_message = decrypt.decrypt_payload(payload, key_path, passphrase)
-        if decrypted_message is None:
-            return
-
-        has_file_equation = decrypt.payload_includes_file(payload)
-        dec_file_path_entry.configure(state="normal")
-        dec_file_path_entry.delete(0, "end")
-        if has_file_equation:
-            parsed_payload = decrypt._parse_payload(payload)
-            file_payload = parsed_payload.get("encrypted_file", parsed_payload.get("secret_file"))
-            file_bytes = decrypt.decrypt_file_payload(file_payload, key_path, passphrase)
-            if file_bytes is not None:
-                decrypted_file_bytes[0] = file_bytes
-                dec_file_path_entry.insert(0, "Decrypted file ready to save")
-                save_btn.configure(state="normal")
-            else:
-                dec_file_path_entry.insert(0, "Unable to decrypt file bytes")
-                save_btn.configure(state="disabled")
-        else:
+        try:
+            payload = raw_payload_box.get("1.0", "end-1c")
+            key_path = priv_key_path_entry.get().strip()
+            passphrase = passphrase_entry.get()
+            decrypted_file_bytes[0] = None
             save_btn.configure(state="disabled")
-        dec_file_path_entry.configure(state="readonly")
+
+            if not key_path:
+                messagebox.showwarning("Missing Private Key", "Please select your private GPG key file first.")
+                return
+
+            if not passphrase.strip():
+                messagebox.showwarning("Missing Passphrase", "Please enter the passphrase for the private GPG key.")
+                return
+
+            decrypted_message = decrypt.decrypt_payload(payload, key_path, passphrase)
+            if decrypted_message is None:
+                return
+
+            has_file_equation = decrypt.payload_includes_file(payload)
+            dec_file_path_entry.configure(state="normal")
+            dec_file_path_entry.delete(0, "end")
+            if has_file_equation:
+                parsed_payload = decrypt._parse_payload(payload)
+                file_payload = parsed_payload.get("encrypted_file", parsed_payload.get("secret_file"))
+                file_bytes = decrypt.decrypt_file_payload(file_payload, key_path, passphrase)
+                if file_bytes is not None:
+                    decrypted_file_bytes[0] = file_bytes
+                    dec_file_path_entry.insert(0, "Decrypted file ready to save")
+                    save_btn.configure(state="normal")
+                else:
+                    dec_file_path_entry.insert(0, "Unable to decrypt file bytes")
+                    save_btn.configure(state="disabled")
+            else:
+                save_btn.configure(state="disabled")
+            dec_file_path_entry.configure(state="readonly")
+        finally:
+            decrypt_btn.configure(text="Decrypt Payload", state="normal")
 
     decrypt_btn.configure(command=decrypt_current_payload)
     decrypt_btn.pack(side="bottom", fill="x")

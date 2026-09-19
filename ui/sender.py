@@ -664,24 +664,30 @@ def sender_screen(root: customtkinter.CTk):
 
     # --- Encrypt Button ---
     def trigger_encryption():
-        msg = secretMessageEntry.get("1.0", "end-1c")
-        secret_file = secretFilePathEntry.get()
-        gpg_key = gpgKeyPathEntry.get()
-        salt_type = saltEquationTypeVar.get()
+        encryptButton.configure(text="Encrypting...", state="disabled")
+        root.update_idletasks()
 
-        payload = utils.encrypt.encryptMessage(msg, gpg_key, salt_type)
+        try:
+            msg = secretMessageEntry.get("1.0", "end-1c")
+            secret_file = secretFilePathEntry.get()
+            gpg_key = gpgKeyPathEntry.get()
+            salt_type = saltEquationTypeVar.get()
 
-        if secret_file and payload:
-            file_eq = utils.encrypt.encrypt_file(secret_file, gpg_key, salt_type)
-            if file_eq:
-                payload["encrypted_file"] = file_eq
+            payload = utils.encrypt.encryptMessage(msg, gpg_key, salt_type)
 
-        if payload:
-            utils.encrypt.send_payload(payload)
+            if secret_file and payload:
+                file_eq = utils.encrypt.encrypt_file(secret_file, gpg_key, salt_type)
+                if file_eq:
+                    payload["encrypted_file"] = file_eq
 
-        if payload and "latex" in payload:
-            latest_latex_state[0] = payload["latex"]
-            render_latex(fig, ax, fig_canvas, scroll_canvas, scroll_x, scroll_y, payload["latex"], f_size=12)
+            if payload:
+                utils.encrypt.send_payload(payload)
+
+            if payload and "latex" in payload:
+                latest_latex_state[0] = payload["latex"]
+                render_latex(fig, ax, fig_canvas, scroll_canvas, scroll_x, scroll_y, payload["latex"], f_size=12)
+        finally:
+            encryptButton.configure(text="Encrypt and Send", state="normal")
 
     encryptButton = customtkinter.CTkButton(
         right_col,
